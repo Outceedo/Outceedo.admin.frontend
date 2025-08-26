@@ -1,0 +1,238 @@
+{
+  "plans": {
+    "free": {
+      "id": "free-plan",
+      "name": "Free",
+      "type": "free",
+      "price": 0,
+      "currency": "GBP",
+      "interval": "month",
+      "description": "Essential features to get started",
+      "features": {
+        "subscriptionFee": {
+          "name": "Subscription Fee",
+          "value": "Free",
+          "description": "No monthly charges",
+          "enabled": true
+        },
+        "platformFeatures": {
+          "name": "Features",
+          "value": "Limited use",
+          "description": "Limited use of platform features",
+          "enabled": true
+        },
+        "cloudStorage": {
+          "name": "Cloud Storage",
+          "value": "2 photos & 2 videos",
+          "description": "Limited storage capacity",
+          "enabled": true,
+          "limits": {
+            "photos": 2,
+            "videos": 2
+          }
+        },
+        "reports": {
+          "name": "Reports",
+          "value": "Limited Access (7 days)",
+          "description": "Access reports for 7 days only",
+          "enabled": true,
+          "limits": {
+            "accessDays": 7,
+            "downloadEnabled": false,
+            "shareEnabled": false
+          }
+        },
+        "videoConferenceRecordings": {
+          "name": "Video Conference Recordings",
+          "value": "Limited Access (7 days)",
+          "description": "Access recordings for 7 days only",
+          "enabled": true,
+          "limits": {
+            "accessDays": 7
+          }
+        },
+        "expertsSearch": {
+          "name": "Experts Search",
+          "value": "Limited (Local)",
+          "description": "Local experts only",
+          "enabled": true,
+          "limits": {
+            "scope": "local",
+            "worldwide": false
+          }
+        },
+        "reportsDownloadShare": {
+          "name": "Reports Download & Share",
+          "value": "NO",
+          "description": "Not available",
+          "enabled": false
+        },
+        "bookings": {
+          "name": "Bookings (Expert Services)",
+          "value": "Recorded Video Assessment only",
+          "description": "Limited to recorded video assessments",
+          "enabled": true,
+          "limits": {
+            "allowedServices": ["recorded-video-assessment"],
+            "allServices": false
+          }
+        },
+        "buildingFansFollowers": {
+          "name": "Building Fans/Followers",
+          "value": "NO",
+          "description": "Not available",
+          "enabled": false
+        },
+        "promotions": {
+          "name": "Promotions",
+          "value": "NO",
+          "description": "Social Media, Newsletters, Front Page not available",
+          "enabled": false,
+          "limits": {
+            "socialMedia": false,
+            "newsletters": false,
+            "frontPage": false
+          }
+        },
+        "sponsorshipApplications": {
+          "name": "Sponsorship Applications",
+          "value": "NO",
+          "description": "Not available",
+          "enabled": false
+        },
+        "aiFeatures": {
+          "name": "AI Features",
+          "value": "NO",
+          "description": "Coming soon - Premium only",
+          "enabled": false,
+          "comingSoon": true
+        }
+      },
+      "createdAt": "2025-07-13T17:14:43Z",
+      "updatedAt": "2025-07-13T17:14:43Z"
+    },
+    "pro": {
+      "id": "pro-plan",
+      "name": "Pro",
+      "type": "premium",
+      "price": 10,
+      "yearlyPrice": 100,
+      "currency": "GBP",
+      "interval": "month",
+      "description": "Unlock all premium features and unlimited access",
+      "features": {
+        "subscriptionFee": {
+          "name": "Subscription Fee",
+          "value": "£10/month or £100/year",
+          "description": "Flexible payment options",
+          "enabled": true,
+          "pricing": {
+            "monthly": 10,
+            "yearly": 100,
+            "yearlySavings": 20
+          }
+        },
+        "platformFeatures": {
+          "name": "Features",
+          "value": "Unlimited",
+          "description": "Unlimited use of all platform features",
+          "enabled": true
+        },
+        "cloudStorage": {
+          "name": "Cloud Storage",
+          "value": "10 photos & 5 videos",
+          "description": "Enhanced storage capacity",
+          "enabled": true,
+          "limits": {
+            "photos": 10,
+            "videos": 5
+          }
+        },
+        "reports": {
+          "name": "Reports",
+          "value": "Unlimited Access",
+          "description": "Access all reports anytime",
+          "enabled": true,
+          "limits": {
+            "accessDays": -1,
+            "downloadEnabled": true,
+            "shareEnabled": true
+          }
+        },
+        "videoConferenceRecordings": {
+          "name": "Video Conference Recordings",
+          "value": "Unlimited Access",
+          "description": "Access all recordings anytime",
+          "enabled": true,
+          "limits": {
+            "accessDays": -1
+          }
+        },
+        "expertsSearch": {
+          "name": "Experts Search",
+          "value": "Unlimited (Worldwide)",
+          "description": "Worldwide expert access",
+          "enabled": true,
+          "limits": {
+            "scope": "worldwide",
+            "worldwide": true
+          }
+        },
+        "reportsDownloadShare": {
+          "name": "Reports Download & Share",
+          "value": "YES",
+          "description": "Download and share reports",
+          "enabled": true
+        },
+        "bookings": {
+          "name": "Bookings (Expert Services)",
+          "value": "All Services",
+          "description": "Access to all expert services",
+          "enabled": true,
+          "limits": {
+            "allowedServices": ["all"],
+            "allServices": true
+          }
+        },
+        "buildingFansFollowers": {
+          "name": "Building Fans/Followers",
+          "value": "YES",
+          "description": "Build your fanbase",
+          "enabled": true
+        },
+        "promotions": {
+          "name": "Promotions",
+          "value": "YES",
+          "description": "Social Media, Newsletters, Front Page promotions",
+          "enabled": true,
+          "limits": {
+            "socialMedia": true,
+            "newsletters": true,
+            "frontPage": true
+          }
+        },
+        "sponsorshipApplications": {
+          "name": "Sponsorship Applications",
+          "value": "YES",
+          "description": "Apply for sponsorship opportunities",
+          "enabled": true
+        },
+        "aiFeatures": {
+          "name": "AI Features",
+          "value": "YES",
+          "description": "Access to AI features (coming soon)",
+          "enabled": true,
+          "comingSoon": true
+        }
+      },
+      "createdAt": "2025-07-13T17:14:43Z",
+      "updatedAt": "2025-07-13T17:14:43Z"
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-07-13T17:14:43Z",
+    "currency": "GBP",
+    "defaultPlan": "free"
+  }
+}
