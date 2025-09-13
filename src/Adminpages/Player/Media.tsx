@@ -25,7 +25,6 @@ import {
   Image,
   X,
   Download,
-  ExternalLink,
 } from "lucide-react";
 
 // Update MediaFile interface based on your API response

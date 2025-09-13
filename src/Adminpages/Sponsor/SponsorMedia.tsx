@@ -561,7 +561,7 @@ const SponsorMedia: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-center align-middle py-4">
                         <div className="flex items-center justify-center gap-2">
-                          <Play className="w-4 h-4 text-blue-600" />
+                          <Image className="w-4 h-4 text-purple-600" />
                           <span className="font-medium">{photoCount}</span>
                         </div>
                         {photoCount > 0 && (
@@ -688,7 +688,7 @@ const SponsorMedia: React.FC = () => {
 
         {/* Modal */}
         {modal.isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-xs">
             <div className="bg-white dark:bg-gray-800 rounded-lg w-[80vw] max-w-6xl h-[90vh] flex flex-col px-16">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">

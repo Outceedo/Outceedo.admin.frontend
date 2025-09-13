@@ -53,7 +53,7 @@ const Fanandfollowers = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/api/v2/user/users`,
+        `${import.meta.env.VITE_PORT}/user/users`,
         {
           params: {
             page: page,
