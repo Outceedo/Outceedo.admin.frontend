@@ -15,14 +15,62 @@ import { Input } from "@/components/ui/input";
 
 // Random enrollment numbers for demo
 const teams = [
-  { name: "Team A", registered: "15th May 2024", services: "Training and Enrollments", enrollments: 8, status: "Active" },
-  { name: "Team B", registered: "22nd June 2024", services: "Training and Enrollments", enrollments: 12, status: "Inactive" },
-  { name: "Team C", registered: "03rd July 2024", services: "Training and Enrollments", enrollments: 6, status: "Active" },
-  { name: "Team D", registered: "12th August 2024", services: "Training and Enrollments", enrollments: 10, status: "Inactive" },
-  { name: "Team E", registered: "01st July 2024", services: "Training and Enrollments", enrollments: 14, status: "Active" },
-  { name: "Team F", registered: "05th July 2024", services: "Training and Enrollments", enrollments: 9, status: "Inactive" },
-  { name: "Team G", registered: "10th July 2024", services: "Training and Enrollments", enrollments: 11, status: "Active" },
-  { name: "Team H", registered: "15th July 2024", services: "Training and Enrollments", enrollments: 7, status: "Inactive" },
+  {
+    name: "Team A",
+    registered: "15th May 2024",
+    services: "Training and Enrollments",
+    enrollments: 8,
+    status: "Active",
+  },
+  {
+    name: "Team B",
+    registered: "22nd June 2024",
+    services: "Training and Enrollments",
+    enrollments: 12,
+    status: "Inactive",
+  },
+  {
+    name: "Team C",
+    registered: "03rd July 2024",
+    services: "Training and Enrollments",
+    enrollments: 6,
+    status: "Active",
+  },
+  {
+    name: "Team D",
+    registered: "12th August 2024",
+    services: "Training and Enrollments",
+    enrollments: 10,
+    status: "Inactive",
+  },
+  {
+    name: "Team E",
+    registered: "01st July 2024",
+    services: "Training and Enrollments",
+    enrollments: 14,
+    status: "Active",
+  },
+  {
+    name: "Team F",
+    registered: "05th July 2024",
+    services: "Training and Enrollments",
+    enrollments: 9,
+    status: "Inactive",
+  },
+  {
+    name: "Team G",
+    registered: "10th July 2024",
+    services: "Training and Enrollments",
+    enrollments: 11,
+    status: "Active",
+  },
+  {
+    name: "Team H",
+    registered: "15th July 2024",
+    services: "Training and Enrollments",
+    enrollments: 7,
+    status: "Inactive",
+  },
 ];
 
 const RegisteredTeams: React.FC = () => {
@@ -30,8 +78,18 @@ const RegisteredTeams: React.FC = () => {
 
   useEffect(() => {
     const monthList = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     setTimeout(() => setMonths(monthList), 500);
   }, []);

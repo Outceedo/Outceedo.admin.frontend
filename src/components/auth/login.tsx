@@ -57,7 +57,7 @@ const AdminLogin: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_PORT}/api/v1/admin/login`,
+        `${import.meta.env.VITE_PORT}/auth/login`, // Fixed API endpoint
         {
           email: formData.email.trim(),
           password: formData.password,
@@ -69,35 +69,51 @@ const AdminLogin: React.FC = () => {
         }
       );
 
-      if (response.status === 200 && response.data) {
-        const { token, user } = response.data;
+      if (response.status === 200) {
+        // Get the API key from response headers
+        const apiKey = response.headers["api-key"];
 
-        // Store admin credentials
-        localStorage.setItem("adminToken", token);
-        localStorage.setItem("adminUser", JSON.stringify(user));
-        localStorage.setItem("adminId", user.id);
-        localStorage.setItem("isAdmin", "true");
+        if (apiKey) {
+          // Store admin credentials
+          localStorage.setItem("adminToken", apiKey);
+          localStorage.setItem(
+            "adminUser",
+            JSON.stringify({
+              email: formData.email,
+              // Add other user properties if available from your backend
+            })
+          );
+          localStorage.setItem("isAdmin", "true");
 
-        Swal.fire({
-          icon: "success",
-          title: "Welcome Back!",
-          text: `Successfully logged in as ${user.email}`,
-          timer: 2000,
-          showConfirmButton: false,
-        });
+          Swal.fire({
+            icon: "success",
+            title: "Welcome Back!",
+            text: `Successfully logged in as ${formData.email}`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
 
-        // Redirect to admin dashboard
-        navigate("/admin/dashboard");
+          // Redirect to admin dashboard
+          navigate("/admin/dashboard");
+        } else {
+          setError("Authentication failed. No token received.");
+        }
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
 
       if (error.response?.status === 401) {
         setError("Invalid email or password");
+      } else if (error.response?.status === 404) {
+        setError(
+          error.response?.data?.message || "Email or password not found"
+        );
       } else if (error.response?.status === 403) {
         setError("Access denied. Admin privileges required.");
       } else if (error.response?.status === 429) {
         setError("Too many login attempts. Please try again later.");
+      } else if (error.response?.status === 500) {
+        setError("Server error. Please try again later.");
       } else {
         setError("Login failed. Please try again.");
       }
@@ -127,7 +143,6 @@ const AdminLogin: React.FC = () => {
     >
       {/* Dark overlay for better readability */}
       <div className="absolute inset-0 bg-black/40"></div>
-      {/* <div className="absolute inset-0 bg-black/20"></div> */}
 
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
@@ -228,9 +243,6 @@ const AdminLogin: React.FC = () => {
                 type="submit"
                 disabled={loading}
                 className="w-full h-12 bg-red-600 hover:bg-red-700 focus:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => {
-                  navigate("/admin/dashboard");
-                }}
               >
                 {loading ? (
                   <div className="flex items-center justify-center">

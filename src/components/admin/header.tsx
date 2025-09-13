@@ -1,9 +1,9 @@
-import { AlignJustify } from "lucide-react";
+import { AlignJustify, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface AdminHeaderProps {
   setOpen: (open: boolean) => void;
@@ -22,30 +22,30 @@ const menuItems = [
 
   // Player
   { path: "/player/player", name: "Players" },
- 
 
   // Expert
   { path: "/expert/expert", name: "Experts" },
- 
+
   //sponsors
-   { path: "/sponsor/sponsor", name: "Sponsor" },
+  { path: "/sponsor/sponsor", name: "Sponsor" },
 
-      
+  //Teams
+  { path: "/team/registeredteams", name: "RegisteredTeams" },
 
-   //Teams
-    { path: "/team/registeredteams", name: "RegisteredTeams" },
-
-    // Fans
-      { path: "/fans/fans", name: "Fans&Follwers" },
+  // Fans
+  { path: "/fans/fans", name: "Fans&Follwers" },
 ];
 
 function Header({ setOpen }: AdminHeaderProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const currentTitle = (() => {
     // 1. Try exact match first
-    const exactMatch = menuItems.find((item) => location.pathname === item.path);
+    const exactMatch = menuItems.find(
+      (item) => location.pathname === item.path
+    );
     if (exactMatch) return exactMatch.name;
 
     // 2. Fallback to longest prefix match
@@ -76,6 +76,26 @@ function Header({ setOpen }: AdminHeaderProps) {
       document.body.classList.add("dark");
       localStorage.setItem("darkMode", "enabled");
     }
+  };
+
+  const handleLogout = () => {
+    // Clear all tokens and user data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+    localStorage.removeItem("userid");
+    localStorage.removeItem("viewplayerusername");
+    localStorage.removeItem("planId");
+
+    // Clear any other user-related data that might be stored
+    // Add any other localStorage keys you want to clear
+
+    // Navigate to login page
+    navigate("/login");
+
+    // Optional: Refresh the page to ensure all state is reset
+    window.location.reload();
   };
 
   return (
@@ -112,6 +132,13 @@ function Header({ setOpen }: AdminHeaderProps) {
             icon={isDarkMode ? faMoon : faSun}
             className="text-gray-600 dark:text-white text-xl"
           />
+        </Button>
+        <Button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 text-white p-3"
+        >
+          <LogOut />
+          Logout
         </Button>
       </div>
     </header>
