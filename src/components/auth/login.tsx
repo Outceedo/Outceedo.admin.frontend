@@ -17,6 +17,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import bg from "@/assets/images/football.jpg";
 import logo from "@/assets/images/outceedologo.png";
+import { useAuth } from "@/App";
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ const AdminLogin: React.FC = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,16 +76,16 @@ const AdminLogin: React.FC = () => {
         const apiKey = response.headers["api-key"];
 
         if (apiKey) {
-          // Store admin credentials
-          localStorage.setItem("adminToken", apiKey);
+          // Store admin user info
           localStorage.setItem(
             "adminUser",
             JSON.stringify({
               email: formData.email,
-              // Add other user properties if available from your backend
             })
           );
-          localStorage.setItem("isAdmin", "true");
+
+          // Use auth context login function to update state and localStorage
+          login(apiKey, "admin");
 
           Swal.fire({
             icon: "success",
