@@ -17,13 +17,13 @@ import axios from "axios";
 
 interface SponsorApplication {
   id: string;
-  playerId: string;
-  sponsorId: string;
-  applicationDate: string;
-  type: "MONETARY" | "PRODUCT";
+  playerId?: string;
+  sponsorId?: string;
+  applicationDate?: string;
+  type?: "MONETARY" | "PRODUCT";
   allocatedDate?: string | null;
   amount?: string | null;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status?: "PENDING" | "APPROVED" | "REJECTED";
   description?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -100,8 +100,8 @@ const SponsorShipApplication: React.FC = () => {
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toUpperCase()) {
+  const getStatusBadgeClass = (status: string | undefined) => {
+    switch (status?.toUpperCase()) {
       case "APPROVED":
         return "bg-green-100 text-green-800 p-1 w-20 text-xs sm:text-sm";
       case "REJECTED":
@@ -212,7 +212,7 @@ const SponsorShipApplication: React.FC = () => {
                       Player
                     </Link>
                     <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono">
-                      {app.playerId.substring(0, 8)}...
+                      {app.playerId?.substring(0, 8) ?? "N/A"}...
                     </div>
                   </TableCell>
 
@@ -225,7 +225,7 @@ const SponsorShipApplication: React.FC = () => {
                       Sponsor
                     </Link>
                     <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono">
-                      {app.sponsorId.substring(0, 8)}...
+                      {app.sponsorId?.substring(0, 8) ?? "N/A"}...
                     </div>
                   </TableCell>
 
@@ -239,7 +239,7 @@ const SponsorShipApplication: React.FC = () => {
                   {/* Type */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <span className="text-xs sm:text-sm capitalize">
-                      {app.type.toLowerCase()}
+                      {app.type?.toLowerCase() ?? "N/A"}
                     </span>
                   </TableCell>
 
@@ -262,7 +262,7 @@ const SponsorShipApplication: React.FC = () => {
                   {/* Status */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <Badge className={getStatusBadgeClass(app.status)}>
-                      {app.status}
+                      {app.status ?? "UNKNOWN"}
                     </Badge>
                   </TableCell>
 
