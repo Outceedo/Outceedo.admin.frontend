@@ -470,9 +470,11 @@ const RegisteredTeams: React.FC = () => {
                     <Button size="icon" variant="ghost" title="Delete">
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
-                    <Button size="icon" variant="ghost" title="Edit">
-                      <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
-                    </Button>
+                    <Link to={`/admin/team/edit/${team.id}`}>
+                      <Button size="icon" variant="ghost" title="Edit">
+                        <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
+                      </Button>
+                    </Link>
                     <Button size="icon" variant="ghost" title="View">
                       <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                     </Button>

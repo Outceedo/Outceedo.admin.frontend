@@ -230,9 +230,11 @@ const Fanandfollowers = () => {
                       <Button size="icon" variant="ghost">
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
-                      <Button size="icon" variant="ghost">
-                        <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
-                      </Button>
+                      <Link to={`/admin/fan/edit/${user.id}`}>
+                        <Button size="icon" variant="ghost">
+                          <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
+                        </Button>
+                      </Link>
                       <Button size="icon" variant="ghost">
                         <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                       </Button>

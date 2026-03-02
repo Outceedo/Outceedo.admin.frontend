@@ -16,26 +16,31 @@ import Booking from "./Adminpages/Player/Booking";
 import SponsorShipApplication from "./Adminpages/Player/SponsorShipApplication";
 import ServiceTransaction from "./Adminpages/Player/ServiceTransaction";
 import Media from "./Adminpages/Player/Media";
+import EditPlayer from "./Adminpages/Player/EditPlayer";
 
 import Expert from "./Adminpages/Expert/Expert";
+import EditExpert from "./Adminpages/Expert/EditExpert";
 import ExpertBooking from "./Adminpages/Expert/ExpertBooking";
 import ExpertMedia from "./Adminpages/Expert/ExpertMedia";
 import ExpertServices from "./Adminpages/Expert/ExpertServices";
 import PaymentClaims from "./Adminpages/Expert/PaymentClaims";
 
 import Sponsor from "./Adminpages/Sponsor/Sponsor";
+import EditSponsor from "./Adminpages/Sponsor/EditSponsor";
 import Playersrequest from "./Adminpages/Sponsor/Playersrequest";
 import SponsorMedia from "./Adminpages/Sponsor/SponsorMedia";
 import SponsorshipOfferedTable from "./Adminpages/Sponsor/Sponsorshipoffered";
 import SponsorshipTransactions from "./Adminpages/Sponsor/Sponsorshiptransactions";
 
 import RegisteredTeams from "./Adminpages/Teams/RegisteredTeams";
+import EditTeam from "./Adminpages/Teams/EditTeam";
 import RegisteredClubs from "./Adminpages/Teams/RegisteredClubs";
 import PlayersAssociations from "./Adminpages/Teams/PlayersAssociations";
 import ReviewsComments from "./Adminpages/Teams/Reviews&Comments";
 import Activities from "./Adminpages/Teams/Activities";
 
 import Fans from "./Adminpages/Fans/Fans";
+import EditFan from "./Adminpages/Fans/EditFan";
 import Reviews from "./Adminpages/Fans/FansReviews";
 import Interests from "./Adminpages/Fans/Interest";
 import Comments from "./Adminpages/Fans/comments";
@@ -181,6 +186,7 @@ const AppRoutes = () => {
           path="player/ServiceTransaction"
           element={<ServiceTransaction />}
         />
+        <Route path="player/edit/:id" element={<EditPlayer />} />
 
         {/* Expert Routes */}
         <Route path="expert" element={<Expert />} />
@@ -188,6 +194,7 @@ const AppRoutes = () => {
         <Route path="expert/paymentclaims" element={<PaymentClaims />} />
         <Route path="expert/media" element={<ExpertMedia />} />
         <Route path="expert/services" element={<ExpertServices />} />
+        <Route path="expert/edit/:id" element={<EditExpert />} />
 
         {/* Sponsor Routes */}
         <Route path="sponsor" element={<Sponsor />} />
@@ -201,6 +208,7 @@ const AppRoutes = () => {
           path="sponsor/SponsorshipTransactions"
           element={<SponsorshipTransactions />}
         />
+        <Route path="sponsor/edit/:id" element={<EditSponsor />} />
 
         {/* Team Routes */}
         <Route path="team" element={<RegisteredTeams />} />
@@ -211,12 +219,14 @@ const AppRoutes = () => {
         />
         <Route path="team/reviews&comments" element={<ReviewsComments />} />
         <Route path="team/activities" element={<Activities />} />
+        <Route path="team/edit/:id" element={<EditTeam />} />
 
         {/* Fans Routes */}
         <Route path="fan" element={<Fans />} />
         <Route path="fan/reviews" element={<Reviews />} />
         <Route path="fan/interests" element={<Interests />} />
         <Route path="fan/comments" element={<Comments />} />
+        <Route path="fan/edit/:id" element={<EditFan />} />
       </Route>
 
       {/* Catch-all redirect */}
