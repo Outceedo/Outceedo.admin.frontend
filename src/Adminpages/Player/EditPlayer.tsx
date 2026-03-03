@@ -497,7 +497,7 @@ const EditPlayer: React.FC = () => {
                 />
               ) : (
                 <img
-                  src={defaultAvatar}
+                  src={avatar}
                   alt="Default Avatar"
                   className="w-full h-full object-cover"
                 />
