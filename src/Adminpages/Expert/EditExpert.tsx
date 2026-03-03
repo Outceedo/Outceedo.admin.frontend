@@ -3,8 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Save, Upload, Trash2, Plus, X, Camera, Briefcase } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Save,
+  Upload,
+  Trash2,
+  Plus,
+  X,
+  Camera,
+  Briefcase,
+} from "lucide-react";
 import axios from "axios";
+import avatar from "../../assets/images/avatar.png";
 
 interface Document {
   id: string;
@@ -60,7 +71,9 @@ const EditExpert: React.FC = () => {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
 
   // Services State (Expert-specific)
-  const [platformServices, setPlatformServices] = useState<PlatformService[]>([]);
+  const [platformServices, setPlatformServices] = useState<PlatformService[]>(
+    [],
+  );
   const [expertServices, setExpertServices] = useState<ExpertService[]>([]);
   const [servicesLoading, setServicesLoading] = useState(false);
   const [showAddService, setShowAddService] = useState(false);
@@ -120,10 +133,10 @@ const EditExpert: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/profile/${id}/user`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
         },
@@ -131,7 +144,7 @@ const EditExpert: React.FC = () => {
 
       if (response.status === 200 && response.data) {
         const data = response.data;
-        setCurrentPhoto(data.photo || null);
+        setCurrentPhoto(data.photo || avatar);
         setFormData({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -214,15 +227,14 @@ const EditExpert: React.FC = () => {
       formData.append("photo", photoFile);
 
       const response = await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile/photo`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/photo`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-          params: { userId: id },
-        }
+        },
       );
 
       if (response.data?.photo) {
@@ -251,13 +263,12 @@ const EditExpert: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/document`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-          params: { userId: id },
-        }
+        },
       );
 
       if (response.data) {
@@ -278,7 +289,12 @@ const EditExpert: React.FC = () => {
   };
 
   const handleAddDocument = async () => {
-    if (!documentFile || !newDocument.title || !newDocument.issuedBy || !newDocument.issuedDate) {
+    if (
+      !documentFile ||
+      !newDocument.title ||
+      !newDocument.issuedBy ||
+      !newDocument.issuedDate
+    ) {
       setError("Please fill all required fields and select an image");
       return;
     }
@@ -297,15 +313,14 @@ const EditExpert: React.FC = () => {
       formData.append("image", documentFile);
 
       await axios.post(
-        `${import.meta.env.VITE_USER}/user/document`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Document added successfully!");
@@ -333,13 +348,12 @@ const EditExpert: React.FC = () => {
     try {
       const token = localStorage.getItem("adminToken");
       await axios.delete(
-        `${import.meta.env.VITE_USER}/user/document/${documentId}`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents/${documentId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Document deleted successfully!");
@@ -355,12 +369,12 @@ const EditExpert: React.FC = () => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/services`,
+        `${import.meta.env.VITE_PORT}/profile/services/all`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -376,12 +390,12 @@ const EditExpert: React.FC = () => {
       setServicesLoading(true);
       const token = localStorage.getItem("adminToken");
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/profile/expert/${id}/services`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/services`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -404,17 +418,16 @@ const EditExpert: React.FC = () => {
     try {
       const token = localStorage.getItem("adminToken");
       await axios.post(
-        `${import.meta.env.VITE_USER}/user/profile/service/${newService.serviceId}`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/services/${newService.serviceId}`,
         {
           price: parseFloat(newService.price),
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Service added successfully!");
@@ -435,13 +448,12 @@ const EditExpert: React.FC = () => {
     try {
       const token = localStorage.getItem("adminToken");
       await axios.delete(
-        `${import.meta.env.VITE_USER}/user/profile/service/${serviceId}`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/services/${serviceId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Service removed successfully!");
@@ -530,14 +542,13 @@ const EditExpert: React.FC = () => {
       };
 
       await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         updateData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
-          params: { userId: id },
         },
       );
 
@@ -1227,7 +1238,9 @@ const EditExpert: React.FC = () => {
         {/* Add Service Form */}
         {showAddService && (
           <div className="border rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-700">
-            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">Add New Service</h4>
+            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">
+              Add New Service
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1235,12 +1248,17 @@ const EditExpert: React.FC = () => {
                 </label>
                 <select
                   value={newService.serviceId}
-                  onChange={(e) => setNewService({ ...newService, serviceId: e.target.value })}
+                  onChange={(e) =>
+                    setNewService({ ...newService, serviceId: e.target.value })
+                  }
                   className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
                 >
                   <option value="">Select a service</option>
                   {platformServices
-                    .filter((ps) => !expertServices.some((es) => es.serviceId === ps.id))
+                    .filter(
+                      (ps) =>
+                        !expertServices.some((es) => es.serviceId === ps.id),
+                    )
                     .map((service) => (
                       <option key={service.id} value={service.id}>
                         {service.name}
@@ -1256,7 +1274,9 @@ const EditExpert: React.FC = () => {
                   type="number"
                   step="0.01"
                   value={newService.price}
-                  onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                  onChange={(e) =>
+                    setNewService({ ...newService, price: e.target.value })
+                  }
                   placeholder="Enter price"
                 />
               </div>
@@ -1301,11 +1321,15 @@ const EditExpert: React.FC = () => {
             <span className="ml-2 text-gray-600">Loading services...</span>
           </div>
         ) : expertServices.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No services added yet.</p>
+          <p className="text-gray-500 text-center py-8">
+            No services added yet.
+          </p>
         ) : (
           <div className="space-y-3">
             {expertServices.map((es) => {
-              const serviceDetails = platformServices.find((ps) => ps.id === es.serviceId);
+              const serviceDetails = platformServices.find(
+                (ps) => ps.id === es.serviceId,
+              );
               return (
                 <div
                   key={es.id}
@@ -1313,7 +1337,9 @@ const EditExpert: React.FC = () => {
                 >
                   <div>
                     <h4 className="font-medium text-gray-900 dark:text-white">
-                      {serviceDetails?.name || es.service?.name || "Unknown Service"}
+                      {serviceDetails?.name ||
+                        es.service?.name ||
+                        "Unknown Service"}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {serviceDetails?.description || es.service?.description}
@@ -1356,7 +1382,9 @@ const EditExpert: React.FC = () => {
         {/* Add Document Form */}
         {showAddDocument && (
           <div className="border rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-700">
-            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">Add New Document</h4>
+            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">
+              Add New Document
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1364,7 +1392,9 @@ const EditExpert: React.FC = () => {
                 </label>
                 <Input
                   value={newDocument.title}
-                  onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({ ...newDocument, title: e.target.value })
+                  }
                   placeholder="Document title"
                 />
               </div>
@@ -1374,7 +1404,9 @@ const EditExpert: React.FC = () => {
                 </label>
                 <Input
                   value={newDocument.issuedBy}
-                  onChange={(e) => setNewDocument({ ...newDocument, issuedBy: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({ ...newDocument, issuedBy: e.target.value })
+                  }
                   placeholder="Issuing organization"
                 />
               </div>
@@ -1385,7 +1417,12 @@ const EditExpert: React.FC = () => {
                 <Input
                   type="date"
                   value={newDocument.issuedDate}
-                  onChange={(e) => setNewDocument({ ...newDocument, issuedDate: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      issuedDate: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div>
@@ -1394,7 +1431,12 @@ const EditExpert: React.FC = () => {
                 </label>
                 <select
                   value={newDocument.type}
-                  onChange={(e) => setNewDocument({ ...newDocument, type: e.target.value as "certificate" | "award" })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      type: e.target.value as "certificate" | "award",
+                    })
+                  }
                   className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
                 >
                   <option value="certificate">Certificate</option>
@@ -1407,7 +1449,12 @@ const EditExpert: React.FC = () => {
                 </label>
                 <textarea
                   value={newDocument.description}
-                  onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Optional description"
                   rows={2}
                   className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
@@ -1431,7 +1478,13 @@ const EditExpert: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddDocument(false);
-                  setNewDocument({ title: "", issuedBy: "", issuedDate: "", type: "certificate", description: "" });
+                  setNewDocument({
+                    title: "",
+                    issuedBy: "",
+                    issuedDate: "",
+                    type: "certificate",
+                    description: "",
+                  });
                   setDocumentFile(null);
                 }}
               >
@@ -1466,11 +1519,16 @@ const EditExpert: React.FC = () => {
             <span className="ml-2 text-gray-600">Loading documents...</span>
           </div>
         ) : documents.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No certificates or awards added yet.</p>
+          <p className="text-gray-500 text-center py-8">
+            No certificates or awards added yet.
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {documents.map((doc) => (
-              <div key={doc.id} className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700">
+              <div
+                key={doc.id}
+                className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700"
+              >
                 <div className="h-40 bg-gray-200 dark:bg-gray-600">
                   <img
                     src={doc.imageUrl}
@@ -1481,16 +1539,24 @@ const EditExpert: React.FC = () => {
                 <div className="p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <span className={`inline-block px-2 py-1 text-xs rounded ${
-                        doc.type === "certificate"
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                      }`}>
+                      <span
+                        className={`inline-block px-2 py-1 text-xs rounded ${
+                          doc.type === "certificate"
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        }`}
+                      >
                         {doc.type === "certificate" ? "Certificate" : "Award"}
                       </span>
-                      <h4 className="font-medium mt-2 text-gray-900 dark:text-white">{doc.title}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{doc.issuedBy}</p>
-                      <p className="text-xs text-gray-500">{new Date(doc.issuedDate).toLocaleDateString()}</p>
+                      <h4 className="font-medium mt-2 text-gray-900 dark:text-white">
+                        {doc.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {doc.issuedBy}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(doc.issuedDate).toLocaleDateString()}
+                      </p>
                     </div>
                     <button
                       type="button"

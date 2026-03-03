@@ -3,8 +3,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Save, Upload, Trash2, Plus, X, Camera } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Save,
+  Upload,
+  Trash2,
+  Plus,
+  X,
+  Camera,
+} from "lucide-react";
 import axios from "axios";
+import avatar from "@/assets/images/avatar.png";
 
 interface Document {
   id: string;
@@ -95,10 +105,10 @@ const EditPlayer: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/profile/${id}/user`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
         },
@@ -106,7 +116,7 @@ const EditPlayer: React.FC = () => {
 
       if (response.status === 200 && response.data) {
         const data = response.data;
-        setCurrentPhoto(data.photo || null);
+        setCurrentPhoto(data.photo || avatar);
         setFormData({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -187,15 +197,14 @@ const EditPlayer: React.FC = () => {
       formData.append("photo", photoFile);
 
       const response = await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile/photo`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/photo`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-          params: { userId: id },
-        }
+        },
       );
 
       if (response.data?.photo) {
@@ -224,13 +233,12 @@ const EditPlayer: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/document`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-          params: { userId: id },
-        }
+        },
       );
 
       if (response.data) {
@@ -251,7 +259,12 @@ const EditPlayer: React.FC = () => {
   };
 
   const handleAddDocument = async () => {
-    if (!documentFile || !newDocument.title || !newDocument.issuedBy || !newDocument.issuedDate) {
+    if (
+      !documentFile ||
+      !newDocument.title ||
+      !newDocument.issuedBy ||
+      !newDocument.issuedDate
+    ) {
       setError("Please fill all required fields and select an image");
       return;
     }
@@ -270,15 +283,14 @@ const EditPlayer: React.FC = () => {
       formData.append("image", documentFile);
 
       await axios.post(
-        `${import.meta.env.VITE_USER}/user/document`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Document added successfully!");
@@ -306,13 +318,12 @@ const EditPlayer: React.FC = () => {
     try {
       const token = localStorage.getItem("adminToken");
       await axios.delete(
-        `${import.meta.env.VITE_USER}/user/document/${documentId}`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/documents/${documentId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
           },
-          params: { userId: id },
-        }
+        },
       );
 
       setSuccess("Document deleted successfully!");
@@ -401,14 +412,13 @@ const EditPlayer: React.FC = () => {
       };
 
       await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         updateData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
-          params: { userId: id },
         },
       );
 
@@ -486,9 +496,11 @@ const EditPlayer: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-gray-400 text-4xl">
-                  {formData.firstName?.[0]?.toUpperCase() || "?"}
-                </span>
+                <img
+                  src={defaultAvatar}
+                  alt="Default Avatar"
+                  className="w-full h-full object-cover"
+                />
               )}
             </div>
           </div>
@@ -1097,7 +1109,9 @@ const EditPlayer: React.FC = () => {
         {/* Add Document Form */}
         {showAddDocument && (
           <div className="border rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-700">
-            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">Add New Document</h4>
+            <h4 className="font-medium mb-3 text-gray-900 dark:text-white">
+              Add New Document
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1105,7 +1119,9 @@ const EditPlayer: React.FC = () => {
                 </label>
                 <Input
                   value={newDocument.title}
-                  onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({ ...newDocument, title: e.target.value })
+                  }
                   placeholder="Document title"
                 />
               </div>
@@ -1115,7 +1131,9 @@ const EditPlayer: React.FC = () => {
                 </label>
                 <Input
                   value={newDocument.issuedBy}
-                  onChange={(e) => setNewDocument({ ...newDocument, issuedBy: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({ ...newDocument, issuedBy: e.target.value })
+                  }
                   placeholder="Issuing organization"
                 />
               </div>
@@ -1126,7 +1144,12 @@ const EditPlayer: React.FC = () => {
                 <Input
                   type="date"
                   value={newDocument.issuedDate}
-                  onChange={(e) => setNewDocument({ ...newDocument, issuedDate: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      issuedDate: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div>
@@ -1135,7 +1158,12 @@ const EditPlayer: React.FC = () => {
                 </label>
                 <select
                   value={newDocument.type}
-                  onChange={(e) => setNewDocument({ ...newDocument, type: e.target.value as "certificate" | "award" })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      type: e.target.value as "certificate" | "award",
+                    })
+                  }
                   className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
                 >
                   <option value="certificate">Certificate</option>
@@ -1148,7 +1176,12 @@ const EditPlayer: React.FC = () => {
                 </label>
                 <textarea
                   value={newDocument.description}
-                  onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewDocument({
+                      ...newDocument,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Optional description"
                   rows={2}
                   className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
@@ -1172,7 +1205,13 @@ const EditPlayer: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddDocument(false);
-                  setNewDocument({ title: "", issuedBy: "", issuedDate: "", type: "certificate", description: "" });
+                  setNewDocument({
+                    title: "",
+                    issuedBy: "",
+                    issuedDate: "",
+                    type: "certificate",
+                    description: "",
+                  });
                   setDocumentFile(null);
                 }}
               >
@@ -1207,11 +1246,16 @@ const EditPlayer: React.FC = () => {
             <span className="ml-2 text-gray-600">Loading documents...</span>
           </div>
         ) : documents.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No certificates or awards added yet.</p>
+          <p className="text-gray-500 text-center py-8">
+            No certificates or awards added yet.
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {documents.map((doc) => (
-              <div key={doc.id} className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700">
+              <div
+                key={doc.id}
+                className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700"
+              >
                 <div className="h-40 bg-gray-200 dark:bg-gray-600">
                   <img
                     src={doc.imageUrl}
@@ -1222,16 +1266,24 @@ const EditPlayer: React.FC = () => {
                 <div className="p-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <span className={`inline-block px-2 py-1 text-xs rounded ${
-                        doc.type === "certificate"
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                      }`}>
+                      <span
+                        className={`inline-block px-2 py-1 text-xs rounded ${
+                          doc.type === "certificate"
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                        }`}
+                      >
                         {doc.type === "certificate" ? "Certificate" : "Award"}
                       </span>
-                      <h4 className="font-medium mt-2 text-gray-900 dark:text-white">{doc.title}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{doc.issuedBy}</p>
-                      <p className="text-xs text-gray-500">{new Date(doc.issuedDate).toLocaleDateString()}</p>
+                      <h4 className="font-medium mt-2 text-gray-900 dark:text-white">
+                        {doc.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {doc.issuedBy}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(doc.issuedDate).toLocaleDateString()}
+                      </p>
                     </div>
                     <button
                       type="button"

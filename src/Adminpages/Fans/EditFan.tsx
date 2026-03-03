@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft, Save, Upload, X, Camera } from "lucide-react";
 import axios from "axios";
+import defaultAvatar from "@/assets/avatar.png";
 
 interface FanData {
   id: string;
@@ -71,10 +72,10 @@ const EditFan: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_USER}/user/profile/${id}/user`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
         },
@@ -138,15 +139,14 @@ const EditFan: React.FC = () => {
       formData.append("photo", photoFile);
 
       const response = await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile/photo`,
+        `${import.meta.env.VITE_PORT}/profile/${id}/photo`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-          params: { userId: id },
-        }
+                  }
       );
 
       if (response.data?.photo) {
@@ -215,15 +215,14 @@ const EditFan: React.FC = () => {
       };
 
       await axios.patch(
-        `${import.meta.env.VITE_USER}/user/profile`,
+        `${import.meta.env.VITE_PORT}/profile/${id}`,
         updateData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Api-Key": token,
             "Content-Type": "application/json",
           },
-          params: { userId: id },
-        },
+                  },
       );
 
       setSuccess("Fan profile updated successfully!");
