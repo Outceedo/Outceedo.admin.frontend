@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft, Save, Upload, X, Camera } from "lucide-react";
 import axios from "axios";
-import defaultAvatar from "@/assets/avatar.png";
+import defaultAvatar from "@/assets/images/avatar.png";
 
 interface FanData {
   id: string;
@@ -84,7 +84,7 @@ const EditFan: React.FC = () => {
       if (response.status === 200 && response.data) {
         const data = response.data;
         setFan(data);
-        setCurrentPhoto(data.photo || null);
+        setCurrentPhoto(data.photo || defaultAvatar);
         setFormData({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -146,7 +146,7 @@ const EditFan: React.FC = () => {
             "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-                  }
+        },
       );
 
       if (response.data?.photo) {
@@ -222,7 +222,7 @@ const EditFan: React.FC = () => {
             "Api-Key": token,
             "Content-Type": "application/json",
           },
-                  },
+        },
       );
 
       setSuccess("Fan profile updated successfully!");

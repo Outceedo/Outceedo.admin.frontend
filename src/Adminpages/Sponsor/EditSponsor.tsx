@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft, Save, Upload, X, Camera } from "lucide-react";
 import axios from "axios";
-import defaultAvatar from "@/assets/avatar.png";
+import defaultAvatar from "@/assets/images/avatar.png";
 
 interface SponsorData {
   id: string;
@@ -101,7 +101,7 @@ const EditSponsor: React.FC = () => {
       if (response.status === 200 && response.data) {
         const data = response.data;
         setSponsor(data);
-        setCurrentPhoto(data.photo || null);
+        setCurrentPhoto(data.photo || defaultAvatar);
         setFormData({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -171,7 +171,7 @@ const EditSponsor: React.FC = () => {
             "Api-Key": token,
             "Content-Type": "multipart/form-data",
           },
-                  }
+        },
       );
 
       if (response.data?.photo) {
@@ -256,7 +256,7 @@ const EditSponsor: React.FC = () => {
             "Api-Key": token,
             "Content-Type": "application/json",
           },
-                  },
+        },
       );
 
       setSuccess("Sponsor profile updated successfully!");
@@ -334,7 +334,9 @@ const EditSponsor: React.FC = () => {
                 />
               ) : (
                 <span className="text-gray-400 text-4xl">
-                  {formData.company?.[0]?.toUpperCase() || formData.firstName?.[0]?.toUpperCase() || "?"}
+                  {formData.company?.[0]?.toUpperCase() ||
+                    formData.firstName?.[0]?.toUpperCase() ||
+                    "?"}
                 </span>
               )}
             </div>
