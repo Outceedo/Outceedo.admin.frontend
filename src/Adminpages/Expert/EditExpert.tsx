@@ -81,6 +81,7 @@ const EditExpert: React.FC = () => {
   const [newService, setNewService] = useState({
     serviceId: "",
     price: "",
+    description: "",
   });
 
   const [formData, setFormData] = useState({
@@ -417,10 +418,14 @@ const EditExpert: React.FC = () => {
     setServiceAdding(true);
     try {
       const token = localStorage.getItem("adminToken");
+
       await axios.post(
         `${import.meta.env.VITE_PORT}/profile/${id}/services/${newService.serviceId}`,
         {
           price: parseFloat(newService.price),
+          additionalDetails: newService.description
+            ? { description: newService.description }
+            : undefined,
         },
         {
           headers: {
@@ -432,7 +437,7 @@ const EditExpert: React.FC = () => {
 
       setSuccess("Service added successfully!");
       setShowAddService(false);
-      setNewService({ serviceId: "", price: "" });
+      setNewService({ serviceId: "", price: "", description: "" });
       fetchExpertServices();
     } catch (err: any) {
       console.error("Error adding service:", err);
@@ -1280,6 +1285,20 @@ const EditExpert: React.FC = () => {
                   placeholder="Enter price"
                 />
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newService.description}
+                  onChange={(e) =>
+                    setNewService({ ...newService, description: e.target.value })
+                  }
+                  placeholder="Service description"
+                  rows={2}
+                  className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button
@@ -1287,7 +1306,7 @@ const EditExpert: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddService(false);
-                  setNewService({ serviceId: "", price: "" });
+                  setNewService({ serviceId: "", price: "", description: "" });
                 }}
               >
                 Cancel
@@ -1335,7 +1354,7 @@ const EditExpert: React.FC = () => {
                   key={es.id}
                   className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
                 >
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium text-gray-900 dark:text-white">
                       {serviceDetails?.name ||
                         es.service?.name ||
@@ -1347,6 +1366,12 @@ const EditExpert: React.FC = () => {
                     <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
                       ${es.price.toFixed(2)}
                     </p>
+                    {es.additionalDetails?.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        <span className="font-medium">Description:</span>{" "}
+                        {es.additionalDetails.description}
+                      </p>
+                    )}
                   </div>
                   <button
                     type="button"
