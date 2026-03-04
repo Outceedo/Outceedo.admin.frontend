@@ -1292,7 +1292,10 @@ const EditExpert: React.FC = () => {
                 <textarea
                   value={newService.description}
                   onChange={(e) =>
-                    setNewService({ ...newService, description: e.target.value })
+                    setNewService({
+                      ...newService,
+                      description: e.target.value,
+                    })
                   }
                   placeholder="Service description"
                   rows={2}
@@ -1364,7 +1367,7 @@ const EditExpert: React.FC = () => {
                       {serviceDetails?.description || es.service?.description}
                     </p>
                     <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
-                      ${es.price.toFixed(2)}
+                      £{es.price.toFixed(2)}
                     </p>
                     {es.additionalDetails?.description && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
