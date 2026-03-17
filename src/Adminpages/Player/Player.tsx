@@ -165,7 +165,7 @@ const Player: React.FC = () => {
 
   const getSubscriptionType = (player: PlayerData) => {
     // You can enhance this logic based on your subscription data
-    return player.stripeCustomerId ? "Yearly" : "Monthly";
+    return player.stripeCustomerId ? "Pro" : "Free";
   };
 
   const filteredPlayers = players.filter((player) => {

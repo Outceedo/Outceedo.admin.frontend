@@ -135,24 +135,14 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       icon: "fas fa-user-tie",
       path: "/admin/sponsor",
     },
-    {
-      id: 2,
-      name: "Players Request",
-      icon: "fas fa-file-signature",
-      path: "/admin/sponsor/playersrequest",
-    },
+
     {
       id: 3,
-      name: "Sponsorship Offered",
+      name: "Sponsorships",
       icon: "fas fa-file-alt",
       path: "/admin/sponsor/sponsorshipoffered",
     },
-    {
-      id: 4,
-      name: "Awarded Sponsorships",
-      icon: "fas fa-money-check-alt",
-      path: "/admin/sponsor/sponsorshiptransactions",
-    },
+
     {
       id: 5,
       name: "Sponsors Media",
@@ -328,8 +318,8 @@ function MenuItems({ setOpen, menuItems }: MenuItemsProps) {
                   isActive
                     ? "bg-gray-100 text-black font-medium dark:bg-gray-700 dark:text-white"
                     : menuItem.isLogout
-                    ? "text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      ? "text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 }
               `}
             >
@@ -338,8 +328,8 @@ function MenuItems({ setOpen, menuItems }: MenuItemsProps) {
                   isActive
                     ? "text-gray-800 dark:text-white"
                     : menuItem.isLogout
-                    ? "text-red-500 dark:text-red-400"
-                    : "text-gray-500 dark:text-gray-400"
+                      ? "text-red-500 dark:text-red-400"
+                      : "text-gray-500 dark:text-gray-400"
                 }`}
               ></i>
               <span className={isActive ? "font-medium" : ""}>

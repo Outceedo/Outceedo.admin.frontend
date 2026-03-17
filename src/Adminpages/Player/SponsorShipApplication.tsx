@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Edit2, Eye, Trash2, MoreHorizontal, Loader2 } from "lucide-react";
+import { Edit2, Eye, Trash2, MoreHorizontal, Loader2, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,17 +17,17 @@ import axios from "axios";
 
 interface SponsorApplication {
   id: string;
-  playerId?: string;
-  sponsorId?: string;
-  applicationDate?: string;
-  type?: "MONETARY" | "PRODUCT";
-  allocatedDate?: string | null;
-  amount?: string | null;
-  status?: "PENDING" | "APPROVED" | "REJECTED";
-  description?: string | null;
+  sponsorId: string;
+  userId: string;
+  reason: string;
+  uniqueFactor: string;
+  sponsorshipType: string;
+  website: string;
+  budget: string | null;
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  additionalInfo: string;
   createdAt: string;
   updatedAt: string;
-  // Add any other fields that your API returns
 }
 
 const SponsorShipApplication: React.FC = () => {
@@ -36,7 +36,19 @@ const SponsorShipApplication: React.FC = () => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [selectedApplication, setSelectedApplication] = useState<SponsorApplication | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const pageSize = 10;
+
+  const handleRowClick = (app: SponsorApplication) => {
+    setSelectedApplication(app);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedApplication(null);
+  };
 
   const totalPages = Math.ceil(totalItems / pageSize);
 
@@ -103,6 +115,7 @@ const SponsorShipApplication: React.FC = () => {
   const getStatusBadgeClass = (status: string | undefined) => {
     switch (status?.toUpperCase()) {
       case "APPROVED":
+      case "ACCEPTED":
         return "bg-green-100 text-green-800 p-1 w-20 text-xs sm:text-sm";
       case "REJECTED":
         return "bg-red-100 text-red-800 p-1 w-20 text-xs sm:text-sm";
@@ -176,12 +189,11 @@ const SponsorShipApplication: React.FC = () => {
           <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
             <TableRow>
               <TableHead></TableHead>
-              <TableHead>Player ID</TableHead>
+              <TableHead>User ID</TableHead>
               <TableHead>Sponsor ID</TableHead>
               <TableHead>Application Date</TableHead>
               <TableHead>Sponsorship Type</TableHead>
-              <TableHead>Allocated Date</TableHead>
-              <TableHead>Amount</TableHead>
+              <TableHead>Budget</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -190,29 +202,37 @@ const SponsorShipApplication: React.FC = () => {
             {applications.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={8}
                   className="text-center py-8 text-gray-500"
                 >
                   No sponsorship applications found
                 </TableCell>
               </TableRow>
             ) : (
-              applications.map((app, index) => (
-                <TableRow key={app.id} className="border-b last:border-b-0">
-                  <TableCell className="px-2 sm:px-4 py-2 align-middle">
+              applications.map((app) => (
+                <TableRow
+                  key={app.id}
+                  className="border-b last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => handleRowClick(app)}
+                >
+                  <TableCell
+                    className="px-2 sm:px-4 py-2 align-middle"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Checkbox />
                   </TableCell>
 
-                  {/* Player ID */}
+                  {/* User ID */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <Link
-                      to={`/player-profile/${app.playerId}`}
+                      to={`/player-profile/${app.userId}`}
                       className="font-medium text-xs sm:text-sm md:text-base text-blue-600 underline hover:opacity-80"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Player
+                      User
                     </Link>
                     <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono">
-                      {app.playerId?.substring(0, 8) ?? "N/A"}...
+                      {app.userId?.substring(0, 8) ?? "N/A"}...
                     </div>
                   </TableCell>
 
@@ -221,6 +241,7 @@ const SponsorShipApplication: React.FC = () => {
                     <Link
                       to={`/sponsor-profile/${app.sponsorId}`}
                       className="font-medium text-xs sm:text-sm md:text-base text-blue-600 underline hover:opacity-80"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Sponsor
                     </Link>
@@ -232,30 +253,21 @@ const SponsorShipApplication: React.FC = () => {
                   {/* Application Date */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <span className="text-xs sm:text-sm">
-                      {formatDate(app.applicationDate || app.createdAt)}
+                      {formatDate(app.createdAt)}
                     </span>
                   </TableCell>
 
-                  {/* Type */}
+                  {/* Sponsorship Type */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <span className="text-xs sm:text-sm capitalize">
-                      {app.type?.toLowerCase() ?? "N/A"}
+                      {app.sponsorshipType?.toLowerCase() ?? "N/A"}
                     </span>
                   </TableCell>
 
-                  {/* Allocated Date */}
-                  <TableCell className="px-2 sm:px-4 py-2 align-middle">
-                    <span className="text-xs sm:text-sm">
-                      {app.allocatedDate
-                        ? formatDate(app.allocatedDate)
-                        : "Not allocated"}
-                    </span>
-                  </TableCell>
-
-                  {/* Amount */}
+                  {/* Budget */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle font-semibold">
                     <span className="text-xs sm:text-sm">
-                      {formatAmount(app.amount)}
+                      {formatAmount(app.budget)}
                     </span>
                   </TableCell>
 
@@ -267,7 +279,10 @@ const SponsorShipApplication: React.FC = () => {
                   </TableCell>
 
                   {/* Actions */}
-                  <TableCell className="px-2 sm:px-4 py-2 align-middle">
+                  <TableCell
+                    className="px-2 sm:px-4 py-2 align-middle"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex gap-1 sm:gap-2">
                       <button
                         className="text-red-600 hover:bg-red-50 rounded-full p-1"
@@ -284,6 +299,7 @@ const SponsorShipApplication: React.FC = () => {
                       <button
                         className="text-gray-700 hover:bg-gray-100 rounded-full p-1 dark:text-white"
                         title="View details"
+                        onClick={() => handleRowClick(app)}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -355,6 +371,160 @@ const SponsorShipApplication: React.FC = () => {
             >
               ⟩
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Application Details Modal */}
+      {isModalOpen && selectedApplication && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Application Details
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-4">
+              {/* Status Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Status:
+                </span>
+                <Badge className={getStatusBadgeClass(selectedApplication.status)}>
+                  {selectedApplication.status}
+                </Badge>
+              </div>
+
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Application ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedApplication.id}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Sponsorship Type
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white capitalize">
+                    {selectedApplication.sponsorshipType}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    User ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedApplication.userId}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Sponsor ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedApplication.sponsorId}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Budget
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                    {formatAmount(selectedApplication.budget)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Website
+                  </label>
+                  <a
+                    href={selectedApplication.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline break-all"
+                  >
+                    {selectedApplication.website}
+                  </a>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Created At
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {formatDate(selectedApplication.createdAt)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Updated At
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {formatDate(selectedApplication.updatedAt)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Full Width Fields */}
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Reason
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedApplication.reason}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Unique Factor
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedApplication.uniqueFactor}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Additional Info
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedApplication.additionalInfo || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
+              <Button variant="outline" onClick={closeModal}>
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}

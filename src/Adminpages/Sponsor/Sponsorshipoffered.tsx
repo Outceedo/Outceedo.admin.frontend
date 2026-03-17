@@ -16,6 +16,7 @@ import {
   MoreVertical,
   Search,
   Loader2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,32 +24,20 @@ import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 
-// Interface based on your SponsorApplication model for awarded sponsorships
+// Interface based on actual API response
 interface AwardedSponsorship {
   id: string;
-  playerId: string;
   sponsorId: string;
-  applicationDate?: string;
-  sponsorshipType?: string;
-  amount?: number;
+  userId: string;
+  reason: string;
+  uniqueFactor: string;
+  sponsorshipType: string;
+  website: string;
+  budget: string | null;
   status: string;
-  message?: string;
+  additionalInfo: string;
   createdAt: string;
   updatedAt: string;
-  // Relations (if included in your API response)
-  player?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  };
-  sponsor?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    companyName?: string;
-  };
 }
 
 const months = [
@@ -153,6 +142,18 @@ const SponsorshipOfferedTable: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState("All Months");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedSponsorship, setSelectedSponsorship] = useState<AwardedSponsorship | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleRowClick = (sponsorship: AwardedSponsorship) => {
+    setSelectedSponsorship(sponsorship);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedSponsorship(null);
+  };
 
   const itemsPerPage = 7;
   const totalPages = Math.ceil(filteredSponsorships.length / itemsPerPage);
@@ -233,27 +234,13 @@ const SponsorshipOfferedTable: React.FC = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter((sponsorship) => {
-        const sponsorName = sponsorship.sponsor
-          ? `${sponsorship.sponsor.firstName || ""} ${
-              sponsorship.sponsor.lastName || ""
-            }`.trim() ||
-            sponsorship.sponsor.companyName ||
-            sponsorship.sponsor.email ||
-            sponsorship.sponsorId
-          : sponsorship.sponsorId;
-
-        const playerName = sponsorship.player
-          ? `${sponsorship.player.firstName || ""} ${
-              sponsorship.player.lastName || ""
-            }`.trim() ||
-            sponsorship.player.email ||
-            sponsorship.playerId
-          : sponsorship.playerId;
-
+        const searchLower = searchTerm.toLowerCase();
         return (
-          sponsorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sponsorship.id.toLowerCase().includes(searchTerm.toLowerCase())
+          sponsorship.sponsorId.toLowerCase().includes(searchLower) ||
+          sponsorship.userId.toLowerCase().includes(searchLower) ||
+          sponsorship.id.toLowerCase().includes(searchLower) ||
+          sponsorship.reason?.toLowerCase().includes(searchLower) ||
+          sponsorship.sponsorshipType?.toLowerCase().includes(searchLower)
         );
       });
     }
@@ -286,29 +273,37 @@ const SponsorshipOfferedTable: React.FC = () => {
 
   // Helper functions
   const getSponsorDisplayName = (sponsorship: AwardedSponsorship) => {
-    if (sponsorship.sponsor) {
-      const fullName = `${sponsorship.sponsor.firstName || ""} ${
-        sponsorship.sponsor.lastName || ""
-      }`.trim();
-      return (
-        fullName ||
-        sponsorship.sponsor.companyName ||
-        sponsorship.sponsor.email ||
-        "Unknown Sponsor"
-      );
-    }
     return `Sponsor ${sponsorship.sponsorId.substring(0, 8)}...`;
+  };
+
+  const getUserDisplayName = (sponsorship: AwardedSponsorship) => {
+    return `User ${sponsorship.userId.substring(0, 8)}...`;
   };
 
   const getSponsorshipType = (sponsorship: AwardedSponsorship) => {
     return sponsorship.sponsorshipType || "Not specified";
   };
 
-  const getSponsorshipAmount = (sponsorship: AwardedSponsorship) => {
-    if (sponsorship.amount && sponsorship.amount > 0) {
-      return `£${sponsorship.amount.toLocaleString()}`;
+  const getSponsorshipBudget = (sponsorship: AwardedSponsorship) => {
+    if (sponsorship.budget) {
+      if (sponsorship.budget.includes("£") || sponsorship.budget.includes("$")) {
+        return sponsorship.budget;
+      }
+      return `£${sponsorship.budget}`;
     }
-    return sponsorship.sponsorshipType === "Product" ? "-" : "Not specified";
+    return sponsorship.sponsorshipType?.toLowerCase() === "product" ? "-" : "N/A";
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -414,16 +409,19 @@ const SponsorshipOfferedTable: React.FC = () => {
             <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
               <TableRow>
                 <TableHead className="w-10 text-center"></TableHead>
-                <TableHead className="min-w-[180px] text-left">
-                  Sponsor Name
+                <TableHead className="min-w-[150px] text-left">
+                  User ID
                 </TableHead>
-                <TableHead className="min-w-[150px] text-center">
-                  Sponsorship Type
-                </TableHead>
-                <TableHead className="min-w-[170px] text-center">
-                  Sponsorship Amount
+                <TableHead className="min-w-[150px] text-left">
+                  Sponsor ID
                 </TableHead>
                 <TableHead className="min-w-[120px] text-center">
+                  Type
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center">
+                  Budget
+                </TableHead>
+                <TableHead className="min-w-[100px] text-center">
                   Status
                 </TableHead>
                 <TableHead className="min-w-[140px] text-center">
@@ -435,7 +433,7 @@ const SponsorshipOfferedTable: React.FC = () => {
               {paginatedSponsorships.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-gray-500"
                   >
                     {sponsorships.length === 0
@@ -447,33 +445,49 @@ const SponsorshipOfferedTable: React.FC = () => {
                 paginatedSponsorships.map((sponsorship) => (
                   <TableRow
                     key={sponsorship.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer"
+                    onClick={() => handleRowClick(sponsorship)}
                   >
-                    <TableCell className="text-center align-middle py-4">
+                    <TableCell
+                      className="text-center align-middle py-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox />
                     </TableCell>
 
                     <TableCell className="align-middle py-4">
                       <Link
-                        to={`/admin/sponsor-profile/${sponsorship.sponsorId}`}
+                        to={`/player-profile/${sponsorship.userId}`}
                         className="font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {getSponsorDisplayName(sponsorship)}
+                        User
                       </Link>
-                      {sponsorship.sponsor?.email && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          {sponsorship.sponsor.email}
-                        </div>
-                      )}
+                      <div className="text-xs text-gray-500 mt-1 font-mono">
+                        {sponsorship.userId?.substring(0, 8)}...
+                      </div>
                     </TableCell>
 
-                    <TableCell className="text-center align-middle">
+                    <TableCell className="align-middle py-4">
+                      <Link
+                        to={`/sponsor-profile/${sponsorship.sponsorId}`}
+                        className="font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Sponsor
+                      </Link>
+                      <div className="text-xs text-gray-500 mt-1 font-mono">
+                        {sponsorship.sponsorId?.substring(0, 8)}...
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-center align-middle capitalize">
                       {getSponsorshipType(sponsorship)}
                     </TableCell>
 
                     <TableCell className="text-center align-middle">
                       <span className="font-medium">
-                        {getSponsorshipAmount(sponsorship)}
+                        {getSponsorshipBudget(sponsorship)}
                       </span>
                     </TableCell>
 
@@ -481,7 +495,10 @@ const SponsorshipOfferedTable: React.FC = () => {
                       {getStatusBadge(sponsorship.status)}
                     </TableCell>
 
-                    <TableCell className="text-center align-middle py-4">
+                    <TableCell
+                      className="text-center align-middle py-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex gap-2 justify-center">
                         <Button size="icon" variant="ghost" title="Delete">
                           <Trash2 className="w-5 h-5 text-red-500" />
@@ -489,7 +506,12 @@ const SponsorshipOfferedTable: React.FC = () => {
                         <Button size="icon" variant="ghost" title="Edit">
                           <Pencil className="w-5 h-5 text-gray-600 dark:text-white" />
                         </Button>
-                        <Button size="icon" variant="ghost" title="View">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="View"
+                          onClick={() => handleRowClick(sponsorship)}
+                        >
                           <Eye className="w-5 h-5 text-gray-600 dark:text-white" />
                         </Button>
                         <Button size="icon" variant="ghost" title="More">
@@ -515,6 +537,158 @@ const SponsorshipOfferedTable: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Sponsorship Details Modal */}
+      {isModalOpen && selectedSponsorship && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Sponsorship Details
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 space-y-4">
+              {/* Status Badge */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Status:
+                </span>
+                {getStatusBadge(selectedSponsorship.status)}
+              </div>
+
+              {/* Two Column Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Application ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedSponsorship.id}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Sponsorship Type
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white capitalize">
+                    {selectedSponsorship.sponsorshipType}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    User ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedSponsorship.userId}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Sponsor ID
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                    {selectedSponsorship.sponsorId}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Budget
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                    {getSponsorshipBudget(selectedSponsorship)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Website
+                  </label>
+                  <a
+                    href={selectedSponsorship.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline break-all"
+                  >
+                    {selectedSponsorship.website}
+                  </a>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Created At
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {formatDate(selectedSponsorship.createdAt)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Updated At
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {formatDate(selectedSponsorship.updatedAt)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Full Width Fields */}
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Reason
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedSponsorship.reason}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Unique Factor
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedSponsorship.uniqueFactor}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Additional Info
+                </label>
+                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  {selectedSponsorship.additionalInfo || "N/A"}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
+              <Button variant="outline" onClick={closeModal}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

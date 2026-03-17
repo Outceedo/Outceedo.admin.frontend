@@ -46,6 +46,8 @@ import Interests from "./Adminpages/Fans/Interest";
 import Comments from "./Adminpages/Fans/comments";
 import ScrollToTop from "./common/ScrollToTop";
 import AdminLogin from "./components/auth/login";
+import Referred from "./Adminpages/Player/referred";
+import ReferredExpert from "./Adminpages/Expert/referred";
 
 // ---------------------- Auth Context ----------------------
 interface AuthContextType {
@@ -187,6 +189,7 @@ const AppRoutes = () => {
           element={<ServiceTransaction />}
         />
         <Route path="player/edit/:id" element={<EditPlayer />} />
+        <Route path="player/referral" element={<Referred />} />
 
         {/* Expert Routes */}
         <Route path="expert" element={<Expert />} />
@@ -195,6 +198,7 @@ const AppRoutes = () => {
         <Route path="expert/media" element={<ExpertMedia />} />
         <Route path="expert/services" element={<ExpertServices />} />
         <Route path="expert/edit/:id" element={<EditExpert />} />
+        <Route path="expert/referral" element={<ReferredExpert />} />
 
         {/* Sponsor Routes */}
         <Route path="sponsor" element={<Sponsor />} />

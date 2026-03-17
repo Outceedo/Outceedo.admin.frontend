@@ -23,32 +23,20 @@ import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 
-// Interface based on your SponsorApplication model
+// Interface based on actual API response
 interface SponsorApplication {
   id: string;
-  playerId: string;
   sponsorId: string;
-  applicationDate?: string;
-  sponsorshipType?: string;
-  amount?: number;
+  userId: string;
+  reason: string;
+  uniqueFactor: string;
+  sponsorshipType: string;
+  website: string;
+  budget: string | null;
   status: string;
-  message?: string;
+  additionalInfo: string;
   createdAt: string;
   updatedAt: string;
-  // Relations (if included in your API response)
-  player?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  };
-  sponsor?: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    companyName?: string;
-  };
 }
 
 // Pagination Bar Component
@@ -235,27 +223,13 @@ const Playersrequest: React.FC = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter((app) => {
-        const sponsorName = app.sponsor
-          ? `${app.sponsor.firstName || ""} ${
-              app.sponsor.lastName || ""
-            }`.trim() ||
-            app.sponsor.companyName ||
-            app.sponsor.email ||
-            app.sponsorId
-          : app.sponsorId;
-
-        const playerName = app.player
-          ? `${app.player.firstName || ""} ${
-              app.player.lastName || ""
-            }`.trim() ||
-            app.player.email ||
-            app.playerId
-          : app.playerId;
-
+        const searchLower = searchTerm.toLowerCase();
         return (
-          sponsorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          app.id.toLowerCase().includes(searchTerm.toLowerCase())
+          app.sponsorId?.toLowerCase().includes(searchLower) ||
+          app.userId?.toLowerCase().includes(searchLower) ||
+          app.id.toLowerCase().includes(searchLower) ||
+          app.reason?.toLowerCase().includes(searchLower) ||
+          app.sponsorshipType?.toLowerCase().includes(searchLower)
         );
       });
     }
@@ -300,46 +274,27 @@ const Playersrequest: React.FC = () => {
   };
 
   const getSponsorDisplayName = (application: SponsorApplication) => {
-    if (application.sponsor) {
-      const fullName = `${application.sponsor.firstName || ""} ${
-        application.sponsor.lastName || ""
-      }`.trim();
-      return (
-        fullName ||
-        application.sponsor.companyName ||
-        application.sponsor.email ||
-        "Unknown Sponsor"
-      );
-    }
-    return `Sponsor ${application.sponsorId.substring(0, 8)}...`;
+    return `Sponsor ${application.sponsorId?.substring(0, 8) || "N/A"}...`;
   };
 
-  const getPlayerDisplayName = (application: SponsorApplication) => {
-    if (application.player) {
-      const fullName = `${application.player.firstName || ""} ${
-        application.player.lastName || ""
-      }`.trim();
-      return fullName || application.player.email || "Unknown Player";
-    }
-    return `Player ${application.playerId.substring(0, 8)}...`;
+  const getUserDisplayName = (application: SponsorApplication) => {
+    return `User ${application.userId?.substring(0, 8) || "N/A"}...`;
   };
 
   const getSponsorInfo = (application: SponsorApplication) => {
-    if (application.sponsor) {
-      return (
-        application.sponsor.email ||
-        application.sponsor.companyName ||
-        "No additional info"
-      );
-    }
-    return application.sponsorId.substring(0, 12) + "...";
+    return application.sponsorId?.substring(0, 12) + "..." || "N/A";
   };
 
-  const getPlayerInfo = (application: SponsorApplication) => {
-    if (application.player) {
-      return application.player.email || "No additional info";
+  const getUserInfo = (application: SponsorApplication) => {
+    return application.userId?.substring(0, 12) + "..." || "N/A";
+  };
+
+  const getBudget = (application: SponsorApplication) => {
+    if (!application.budget) return "N/A";
+    if (application.budget.includes("£") || application.budget.includes("$")) {
+      return application.budget;
     }
-    return application.playerId.substring(0, 12) + "...";
+    return `£${application.budget}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -453,10 +408,10 @@ const Playersrequest: React.FC = () => {
               <TableRow>
                 <TableHead className="w-10 text-center"></TableHead>
                 <TableHead className="min-w-[180px] text-left">
-                  Sponsors Name
+                  Sponsor
                 </TableHead>
                 <TableHead className="min-w-[180px] text-left">
-                  Players Name
+                  User
                 </TableHead>
                 <TableHead className="min-w-[130px] text-center">
                   Request Date
@@ -494,11 +449,11 @@ const Playersrequest: React.FC = () => {
                     <TableCell className="align-middle">
                       <div>
                         <div className="font-medium text-blue-600 underline">
-                          <Link to={`/admin/sponsor-profile/${app.sponsorId}`}>
+                          <Link to={`/sponsor-profile/${app.sponsorId}`}>
                             {getSponsorDisplayName(app)}
                           </Link>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 font-mono">
                           {getSponsorInfo(app)}
                         </div>
                       </div>
@@ -507,25 +462,25 @@ const Playersrequest: React.FC = () => {
                     <TableCell className="align-middle">
                       <div>
                         <div className="font-medium text-blue-600 underline">
-                          <Link to={`/admin/player-profile/${app.playerId}`}>
-                            {getPlayerDisplayName(app)}
+                          <Link to={`/player-profile/${app.userId}`}>
+                            {getUserDisplayName(app)}
                           </Link>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {getPlayerInfo(app)}
+                        <div className="text-xs text-gray-500 font-mono">
+                          {getUserInfo(app)}
                         </div>
                       </div>
                     </TableCell>
 
                     <TableCell className="text-center align-middle">
-                      {formatDate(app.applicationDate || app.createdAt)}
+                      {formatDate(app.createdAt)}
                     </TableCell>
 
-                    <TableCell className="text-center align-middle">
+                    <TableCell className="text-center align-middle capitalize">
                       {getSponsorshipType(app)}
-                      {app.amount && (
+                      {app.budget && (
                         <div className="text-xs text-gray-500">
-                          £{app.amount.toLocaleString()}
+                          {getBudget(app)}
                         </div>
                       )}
                     </TableCell>
