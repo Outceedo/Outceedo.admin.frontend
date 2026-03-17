@@ -77,6 +77,13 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       icon: "fas fa-photo-video",
       path: "/admin/player/media",
     },
+    {
+      id: 5,
+      name: "Players Referral",
+      icon: "fas fa-photo-video",
+
+      path: "/admin/player/referral",
+    },
 
     {
       id: 6,
@@ -119,6 +126,13 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       icon: "fas fa-photo-video",
 
       path: "/admin/expert/media",
+    },
+    {
+      id: 5,
+      name: "Experts Referral",
+      icon: "fas fa-photo-video",
+
+      path: "/admin/expert/referral",
     },
 
     {
