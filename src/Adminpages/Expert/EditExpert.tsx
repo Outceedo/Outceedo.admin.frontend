@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import avatar from "../../assets/images/avatar.png";
+import UserActions from "@/components/admin/UserActions";
 
 interface Document {
   id: string;
@@ -592,6 +593,19 @@ const EditExpert: React.FC = () => {
         </Button>
         <h2 className="text-2xl font-semibold">Edit Expert Profile</h2>
       </div>
+
+      {/* User Actions (Ban/Suspend/Delete) */}
+      {id && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6 mb-6">
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
+            User Actions
+          </h3>
+          <UserActions
+            userId={id}
+            username={formData.username}
+          />
+        </div>
+      )}
 
       {error && (
         <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">

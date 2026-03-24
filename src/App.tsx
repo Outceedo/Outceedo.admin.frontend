@@ -49,6 +49,11 @@ import AdminLogin from "./components/auth/login";
 import Referred from "./Adminpages/Player/referred";
 import ReferredExpert from "./Adminpages/Expert/referred";
 
+// Moderation Pages
+import BannedUsers from "./Adminpages/Moderation/BannedUsers";
+import SuspendedUsers from "./Adminpages/Moderation/SuspendedUsers";
+import DeletedUsers from "./Adminpages/Moderation/DeletedUsers";
+
 // ---------------------- Auth Context ----------------------
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -231,6 +236,11 @@ const AppRoutes = () => {
         <Route path="fan/interests" element={<Interests />} />
         <Route path="fan/comments" element={<Comments />} />
         <Route path="fan/edit/:id" element={<EditFan />} />
+
+        {/* Moderation Routes */}
+        <Route path="moderation/banned" element={<BannedUsers />} />
+        <Route path="moderation/suspended" element={<SuspendedUsers />} />
+        <Route path="moderation/deleted" element={<DeletedUsers />} />
       </Route>
 
       {/* Catch-all redirect */}

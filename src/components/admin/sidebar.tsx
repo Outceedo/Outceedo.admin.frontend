@@ -228,6 +228,32 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       path: "/admin/dashboard",
     },
   ],
+  moderation: [
+    {
+      id: 1,
+      name: "Banned Users",
+      icon: "fas fa-ban",
+      path: "/admin/moderation/banned",
+    },
+    {
+      id: 2,
+      name: "Suspended Users",
+      icon: "fas fa-clock",
+      path: "/admin/moderation/suspended",
+    },
+    {
+      id: 3,
+      name: "Deleted Users",
+      icon: "fas fa-trash-alt",
+      path: "/admin/moderation/deleted",
+    },
+    {
+      id: 4,
+      name: "Dashboard",
+      icon: "fas fa-chart-line",
+      path: "/admin/dashboard",
+    },
+  ],
 };
 
 // --- Utility to get role from path ---
