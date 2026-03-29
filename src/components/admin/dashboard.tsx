@@ -1,16 +1,21 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   User2,
   UserCheck2,
   Users,
   UserPlus2,
   UserSquare2,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import {
   XAxis,
@@ -22,6 +27,8 @@ import {
   AreaChart,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { getDeletedUsers } from "@/services/banService";
+import type { DeletedUser } from "@/services/banService";
 
 const metrics = [
   {
@@ -101,6 +108,23 @@ const chartData = Array.from({ length: 30 }, (_, i) => ({
 
 export default function Dashboardadmin() {
   const nav = useNavigate();
+  const [deletedUsers, setDeletedUsers] = useState<DeletedUser[]>([]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleViewDeletedUsers = async () => {
+    setIsLoading(true);
+    setIsSheetOpen(true);
+    try {
+      const response = await getDeletedUsers();
+      setDeletedUsers(response.users);
+    } catch (error) {
+      console.error("Failed to fetch deleted users:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-full p-4 bg-[#f8faff] dark:bg-[#1f1f22] text-black dark:text-white rounded-2xl">
       {/* Top metrics cards */}
@@ -143,6 +167,79 @@ export default function Dashboardadmin() {
           </Button>
         ))}
       </div>
+
+      {/* View Deleted Users Button */}
+      <div className="mb-6">
+        <Button
+          variant="destructive"
+          className="flex items-center gap-2"
+          onClick={handleViewDeletedUsers}
+        >
+          <Trash2 className="w-4 h-4" />
+          View Deleted Users
+        </Button>
+      </div>
+
+      {/* Deleted Users Sheet */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent
+          side="right"
+          className="w-[400px] sm:w-[540px] overflow-y-auto"
+        >
+          <SheetHeader>
+            <SheetTitle>Deleted Users</SheetTitle>
+            <SheetDescription>
+              Users that have been soft deleted. They can be restored within the
+              grace period.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4 space-y-4">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : deletedUsers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No deleted users found.
+              </div>
+            ) : (
+              deletedUsers.map((user) => (
+                <Card key={user.userId} className="p-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium">{user.username}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                      {user.canRestore && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                          Restorable
+                        </span>
+                      )}
+                    </div>
+                    {user.reason && (
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">Reason:</span>{" "}
+                        {user.reason}
+                      </p>
+                    )}
+                    <div className="text-xs text-muted-foreground">
+                      <p>
+                        Deleted: {new Date(user.deletedAt).toLocaleDateString()}
+                      </p>
+                      <p>
+                        Expires: {new Date(user.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Engagement Chart */}
       <Card className="mb-4 shadow-none bg-white dark:bg-[#2c2c2f]">
