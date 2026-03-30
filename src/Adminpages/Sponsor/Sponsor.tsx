@@ -9,27 +9,58 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin, Building } from "lucide-react";
 import { Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
+import UserActions from "@/components/admin/UserActions";
 
 interface Sponsor {
   id: string;
   firstName: string;
   lastName: string;
+  username?: string;
   email: string;
+  mobileNumber?: string;
   createdAt: string;
+  updatedAt?: string;
   status?: string;
-  // Add other fields based on your UserProfile model
+  photo?: string;
   profilePicture?: string;
   phoneNumber?: string;
+  age?: number;
+  gender?: string;
+  birthYear?: number;
+  city?: string;
+  country?: string;
+  address?: string;
+  bio?: string;
+  profession?: string;
+  subProfession?: string;
+  company?: string;
   companyName?: string;
+  companyLink?: string;
+  sponsorType?: string;
+  budgetRange?: string;
   sponsorshipBudget?: number;
   sponsorshipType?: string;
+  sponsorshipCountryPreferred?: string;
+  language?: string[];
+  interests?: string[];
+  socialLinks?: {
+    twitter?: string;
+    facebook?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  stripeCustomerId?: string;
+  referralCode?: string;
+  referredBy?: string;
+  referredFree?: string[];
+  referredPaid?: string[];
 }
 
 // Minimal Pagination Bar Component
@@ -117,6 +148,8 @@ const Sponsor: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [showSponsorModal, setShowSponsorModal] = useState(false);
 
   const itemsPerPage = 7;
 
@@ -293,6 +326,20 @@ const Sponsor: React.FC = () => {
     );
   };
 
+  const handleRowClick = (sponsor: Sponsor) => {
+    setSelectedSponsor(sponsor);
+    setShowSponsorModal(true);
+  };
+
+  const closeSponsorModal = () => {
+    setShowSponsorModal(false);
+    setSelectedSponsor(null);
+  };
+
+  const handleActionComplete = () => {
+    fetchSponsors();
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -396,8 +443,12 @@ const Sponsor: React.FC = () => {
                 </TableRow>
               ) : (
                 paginatedSponsors.map((sponsor, index) => (
-                  <TableRow key={sponsor.id}>
-                    <TableCell className="text-center align-middle">
+                  <TableRow
+                    key={sponsor.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={() => handleRowClick(sponsor)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()} className="text-center align-middle">
                       <Checkbox />
                     </TableCell>
                     <TableCell className="align-middle">
@@ -423,20 +474,25 @@ const Sponsor: React.FC = () => {
                     <TableCell className="text-center align-middle">
                       {getStatusBadge(sponsor)}
                     </TableCell>
-                    <TableCell className="text-center align-middle">
+                    <TableCell onClick={(e) => e.stopPropagation()} className="text-center align-middle">
                       <div className="flex gap-1 sm:gap-2 justify-center">
-                        <Button size="icon" variant="ghost">
-                          <Trash2 className="w-4 h-4 text-red-500" />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleRowClick(sponsor)}
+                        >
+                          <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                         </Button>
                         <Link to={`/admin/sponsor/edit/${sponsor.id}`}>
                           <Button size="icon" variant="ghost">
                             <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
                           </Button>
                         </Link>
-                        <Button size="icon" variant="ghost">
-                          <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
-                        </Button>
-                        <Button size="icon" variant="ghost">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleRowClick(sponsor)}
+                        >
                           <MoreVertical className="w-4 h-4 text-gray-600 dark:text-white" />
                         </Button>
                       </div>
@@ -456,6 +512,343 @@ const Sponsor: React.FC = () => {
           onPageChange={setCurrentPage}
         />
       </div>
+
+      {/* Sponsor Detail Modal */}
+      {showSponsorModal && selectedSponsor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                {(selectedSponsor.photo || selectedSponsor.profilePicture) ? (
+                  <img
+                    src={selectedSponsor.photo || selectedSponsor.profilePicture}
+                    alt={getFullName(selectedSponsor)}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                    <Building className="w-8 h-8 text-gray-500" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    {getFullName(selectedSponsor)}
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {selectedSponsor.username ? `@${selectedSponsor.username}` : selectedSponsor.email}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link to={`/admin/sponsor/edit/${selectedSponsor.id}`}>
+                  <Button variant="outline" size="sm">
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+                <button
+                  onClick={closeSponsorModal}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Contact Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Contact Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedSponsor.email || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedSponsor.mobileNumber || selectedSponsor.phoneNumber || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> Location
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">City:</span>
+                      <span className="dark:text-white">{selectedSponsor.city || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
+                      <span className="dark:text-white">{selectedSponsor.country || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
+                      <span className="dark:text-white">{selectedSponsor.address || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" /> Personal Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
+                      <span className="dark:text-white">{selectedSponsor.age || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
+                      <span className="dark:text-white">{selectedSponsor.birthYear || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
+                      <span className="dark:text-white capitalize">{selectedSponsor.gender || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Company Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Building className="w-4 h-4" /> Company Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Company:</span>
+                      <span className="dark:text-white">{selectedSponsor.company || selectedSponsor.companyName || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Website:</span>
+                      <span className="dark:text-white">{selectedSponsor.companyLink || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Sponsor Type:</span>
+                      <span className="dark:text-white">{selectedSponsor.sponsorType || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sponsorship Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Globe className="w-4 h-4" /> Sponsorship Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="dark:text-white">{selectedSponsor.sponsorshipType || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Budget:</span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.sponsorshipBudget
+                          ? `£${selectedSponsor.sponsorshipBudget.toLocaleString()}`
+                          : selectedSponsor.budgetRange || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Preferred Country:</span>
+                      <span className="dark:text-white">{selectedSponsor.sponsorshipCountryPreferred || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Account Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <Badge
+                        className={
+                          selectedSponsor.stripeCustomerId
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {selectedSponsor.stripeCustomerId ? "Premium" : "Free"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
+                      <span className="dark:text-white">{formatDate(selectedSponsor.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
+                      <span className="dark:text-white">{selectedSponsor.updatedAt ? formatDate(selectedSponsor.updatedAt) : "-"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {selectedSponsor.bio && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Bio
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                    {selectedSponsor.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Languages */}
+              {selectedSponsor.language && selectedSponsor.language.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Languages
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSponsor.language.map((lang, idx) => (
+                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                        {lang.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Links */}
+              {selectedSponsor.socialLinks && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Social Links
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {selectedSponsor.socialLinks.instagram && (
+                      <a
+                        href={
+                          selectedSponsor.socialLinks.instagram.startsWith("http")
+                            ? selectedSponsor.socialLinks.instagram
+                            : `https://instagram.com/${selectedSponsor.socialLinks.instagram}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
+                      >
+                        <Instagram className="w-5 h-5" />
+                        <span className="text-sm">{selectedSponsor.socialLinks.instagram}</span>
+                      </a>
+                    )}
+                    {selectedSponsor.socialLinks.facebook && (
+                      <a
+                        href={
+                          selectedSponsor.socialLinks.facebook.startsWith("http")
+                            ? selectedSponsor.socialLinks.facebook
+                            : `https://facebook.com/${selectedSponsor.socialLinks.facebook}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <Facebook className="w-5 h-5" />
+                        <span className="text-sm">{selectedSponsor.socialLinks.facebook}</span>
+                      </a>
+                    )}
+                    {selectedSponsor.socialLinks.twitter && (
+                      <a
+                        href={
+                          selectedSponsor.socialLinks.twitter.startsWith("http")
+                            ? selectedSponsor.socialLinks.twitter
+                            : `https://twitter.com/${selectedSponsor.socialLinks.twitter}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
+                      >
+                        <Twitter className="w-5 h-5" />
+                        <span className="text-sm">{selectedSponsor.socialLinks.twitter}</span>
+                      </a>
+                    )}
+                    {selectedSponsor.socialLinks.linkedin && (
+                      <a
+                        href={
+                          selectedSponsor.socialLinks.linkedin.startsWith("http")
+                            ? selectedSponsor.socialLinks.linkedin
+                            : `https://linkedin.com/in/${selectedSponsor.socialLinks.linkedin}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
+                      >
+                        <Linkedin className="w-5 h-5" />
+                        <span className="text-sm">{selectedSponsor.socialLinks.linkedin}</span>
+                      </a>
+                    )}
+                    {!selectedSponsor.socialLinks.instagram &&
+                      !selectedSponsor.socialLinks.facebook &&
+                      !selectedSponsor.socialLinks.twitter &&
+                      !selectedSponsor.socialLinks.linkedin && (
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">
+                          No social links available
+                        </span>
+                      )}
+                  </div>
+                </div>
+              )}
+
+              {/* Referral Info */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Referral Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <p className="font-mono font-semibold dark:text-white">
+                      {selectedSponsor.referralCode || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <p className="font-mono dark:text-white">
+                      {selectedSponsor.referredBy || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <p className="dark:text-white">
+                      {selectedSponsor.referredFree?.length || 0} / {selectedSponsor.referredPaid?.length || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Actions */}
+              <div className="border-t dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  User Actions
+                </h3>
+                <UserActions
+                  userId={selectedSponsor.id}
+                  userEmail={selectedSponsor.email}
+                  username={selectedSponsor.username}
+                  onActionComplete={handleActionComplete}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

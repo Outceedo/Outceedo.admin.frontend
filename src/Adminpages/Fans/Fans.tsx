@@ -8,20 +8,49 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Trash2, Eye, MoreHorizontal, Pencil, Loader2 } from "lucide-react";
+import { Trash2, Eye, MoreHorizontal, Pencil, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
+import UserActions from "@/components/admin/UserActions";
 
 interface User {
   id: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
   name?: string;
   email: string;
+  mobileNumber?: string;
   createdAt: string;
-  // Add other user properties based on your UserProfile schema
+  updatedAt?: string;
   profilePicture?: string;
+  photo?: string;
   isActive?: boolean;
+  age?: number;
+  gender?: string;
+  birthYear?: number;
+  city?: string;
+  country?: string;
+  address?: string;
+  bio?: string;
+  profession?: string;
+  subProfession?: string;
+  language?: string[];
+  interests?: string[];
+  socialLinks?: {
+    twitter?: string;
+    facebook?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  stripeCustomerId?: string;
+  referralCode?: string;
+  referredBy?: string;
+  referredFree?: string[];
+  referredPaid?: string[];
 }
 
 const statusClass = (isActive: boolean) =>
@@ -41,6 +70,8 @@ const Fanandfollowers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const pageSize = 10;
   const totalPages = Math.ceil(totalUsers / pageSize);
@@ -106,6 +137,28 @@ const Fanandfollowers = () => {
     }
   };
 
+  const handleRowClick = (user: User) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const closeUserModal = () => {
+    setShowUserModal(false);
+    setSelectedUser(null);
+  };
+
+  const handleActionComplete = () => {
+    fetchUsers(currentPage);
+  };
+
+  const getFullName = (user: User) => {
+    if (user.name) return user.name;
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return fullName || user.username || user.email;
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -167,8 +220,12 @@ const Fanandfollowers = () => {
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
+                <TableRow
+                  key={user.id}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => handleRowClick(user)}
+                >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox />
                   </TableCell>
                   <TableCell>
@@ -225,20 +282,25 @@ const Fanandfollowers = () => {
                       {user.isActive ?? true ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-2">
-                      <Button size="icon" variant="ghost">
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleRowClick(user)}
+                      >
+                        <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                       </Button>
                       <Link to={`/admin/fan/edit/${user.id}`}>
                         <Button size="icon" variant="ghost">
                           <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
                         </Button>
                       </Link>
-                      <Button size="icon" variant="ghost">
-                        <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
-                      </Button>
-                      <Button size="icon" variant="ghost">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleRowClick(user)}
+                      >
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </div>
@@ -302,6 +364,349 @@ const Fanandfollowers = () => {
             >
               ⟩
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* User Detail Modal */}
+      {showUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                {(selectedUser.photo || selectedUser.profilePicture) ? (
+                  <img
+                    src={selectedUser.photo || selectedUser.profilePicture}
+                    alt={getFullName(selectedUser)}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                    <User className="w-8 h-8 text-gray-500" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    {getFullName(selectedUser)}
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {selectedUser.username ? `@${selectedUser.username}` : selectedUser.email}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link to={`/admin/fan/edit/${selectedUser.id}`}>
+                  <Button variant="outline" size="sm">
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+                <button
+                  onClick={closeUserModal}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Contact Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Contact Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedUser.email || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedUser.mobileNumber || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> Location
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">City:</span>
+                      <span className="dark:text-white">{selectedUser.city || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
+                      <span className="dark:text-white">{selectedUser.country || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
+                      <span className="dark:text-white">{selectedUser.address || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" /> Personal Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
+                      <span className="dark:text-white">{selectedUser.age || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
+                      <span className="dark:text-white">{selectedUser.birthYear || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
+                      <span className="dark:text-white capitalize">{selectedUser.gender || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Globe className="w-4 h-4" /> Professional Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Profession:</span>
+                      <span className="dark:text-white">{selectedUser.profession || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Specialization:</span>
+                      <span className="dark:text-white">{selectedUser.subProfession || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Account Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <Badge
+                        className={
+                          selectedUser.stripeCustomerId
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {selectedUser.stripeCustomerId ? "Premium" : "Free"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
+                      <span className="dark:text-white">{formatDate(selectedUser.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
+                      <span className="dark:text-white">{selectedUser.updatedAt ? formatDate(selectedUser.updatedAt) : "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" /> Status
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Account Status:</span>
+                      <span
+                        className={`rounded-lg px-3 py-1 text-xs font-semibold ${statusClass(
+                          selectedUser.isActive ?? true
+                        )}`}
+                      >
+                        {selectedUser.isActive ?? true ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {selectedUser.bio && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Bio
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                    {selectedUser.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Languages */}
+              {selectedUser.language && selectedUser.language.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Languages
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUser.language.map((lang, idx) => (
+                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                        {lang.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Interests */}
+              {selectedUser.interests && selectedUser.interests.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Interests
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUser.interests.map((interest, idx) => (
+                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                        {interest}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Links */}
+              {selectedUser.socialLinks && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Social Links
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {selectedUser.socialLinks.instagram && (
+                      <a
+                        href={
+                          selectedUser.socialLinks.instagram.startsWith("http")
+                            ? selectedUser.socialLinks.instagram
+                            : `https://instagram.com/${selectedUser.socialLinks.instagram}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
+                      >
+                        <Instagram className="w-5 h-5" />
+                        <span className="text-sm">{selectedUser.socialLinks.instagram}</span>
+                      </a>
+                    )}
+                    {selectedUser.socialLinks.facebook && (
+                      <a
+                        href={
+                          selectedUser.socialLinks.facebook.startsWith("http")
+                            ? selectedUser.socialLinks.facebook
+                            : `https://facebook.com/${selectedUser.socialLinks.facebook}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <Facebook className="w-5 h-5" />
+                        <span className="text-sm">{selectedUser.socialLinks.facebook}</span>
+                      </a>
+                    )}
+                    {selectedUser.socialLinks.twitter && (
+                      <a
+                        href={
+                          selectedUser.socialLinks.twitter.startsWith("http")
+                            ? selectedUser.socialLinks.twitter
+                            : `https://twitter.com/${selectedUser.socialLinks.twitter}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
+                      >
+                        <Twitter className="w-5 h-5" />
+                        <span className="text-sm">{selectedUser.socialLinks.twitter}</span>
+                      </a>
+                    )}
+                    {selectedUser.socialLinks.linkedin && (
+                      <a
+                        href={
+                          selectedUser.socialLinks.linkedin.startsWith("http")
+                            ? selectedUser.socialLinks.linkedin
+                            : `https://linkedin.com/in/${selectedUser.socialLinks.linkedin}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
+                      >
+                        <Linkedin className="w-5 h-5" />
+                        <span className="text-sm">{selectedUser.socialLinks.linkedin}</span>
+                      </a>
+                    )}
+                    {!selectedUser.socialLinks.instagram &&
+                      !selectedUser.socialLinks.facebook &&
+                      !selectedUser.socialLinks.twitter &&
+                      !selectedUser.socialLinks.linkedin && (
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">
+                          No social links available
+                        </span>
+                      )}
+                  </div>
+                </div>
+              )}
+
+              {/* Referral Info */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Referral Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <p className="font-mono font-semibold dark:text-white">
+                      {selectedUser.referralCode || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <p className="font-mono dark:text-white">
+                      {selectedUser.referredBy || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <p className="dark:text-white">
+                      {selectedUser.referredFree?.length || 0} / {selectedUser.referredPaid?.length || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Actions */}
+              <div className="border-t dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  User Actions
+                </h3>
+                <UserActions
+                  userId={selectedUser.id}
+                  userEmail={selectedUser.email}
+                  username={selectedUser.username}
+                  onActionComplete={handleActionComplete}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -15,6 +15,18 @@ import {
   MoreVertical,
   Search,
   Loader2,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Calendar,
+  Globe,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Users,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
+import UserActions from "@/components/admin/UserActions";
 
 // Interface based on your actual API response
 interface Team {
@@ -29,6 +42,8 @@ interface Team {
   firstName: string;
   lastName: string;
   username: string;
+  email?: string;
+  mobileNumber?: string;
   role: string;
   createdAt: string;
   updatedAt: string;
@@ -53,7 +68,12 @@ interface Team {
   responseTime?: string | null;
   skills?: string[];
   skinColor?: string | null;
-  socialLinks?: any | null;
+  socialLinks?: {
+    twitter?: string;
+    facebook?: string;
+    linkedin?: string;
+    instagram?: string;
+  } | null;
   sponsorType?: string | null;
   sponsorshipCountryPreferred?: string | null;
   sponsorshipType?: string | null;
@@ -62,6 +82,13 @@ interface Team {
   subProfession?: string | null;
   travelLimit?: number | null;
   weight?: number | null;
+  teamName?: string | null;
+  teamType?: string | null;
+  teamCategory?: string | null;
+  referralCode?: string | null;
+  referredBy?: string | null;
+  referredFree?: string[];
+  referredPaid?: string[];
 }
 
 // Pagination Bar Component
@@ -139,6 +166,8 @@ const RegisteredTeams: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [showTeamModal, setShowTeamModal] = useState(false);
 
   const pageSize = 10;
   const totalPages = Math.ceil(filteredTeams.length / pageSize);
@@ -334,6 +363,20 @@ const RegisteredTeams: React.FC = () => {
     );
   };
 
+  const handleRowClick = (team: Team) => {
+    setSelectedTeam(team);
+    setShowTeamModal(true);
+  };
+
+  const closeTeamModal = () => {
+    setShowTeamModal(false);
+    setSelectedTeam(null);
+  };
+
+  const handleActionComplete = () => {
+    fetchTeams();
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -428,8 +471,12 @@ const RegisteredTeams: React.FC = () => {
               </TableRow>
             ) : (
               paginatedTeams.map((team) => (
-                <TableRow key={team.id}>
-                  <TableCell>
+                <TableRow
+                  key={team.id}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => handleRowClick(team)}
+                >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox />
                   </TableCell>
                   <TableCell>
@@ -466,19 +513,26 @@ const RegisteredTeams: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>{getStatusBadge(team)}</TableCell>
-                  <TableCell className="flex gap-2 justify-center">
-                    <Button size="icon" variant="ghost" title="Delete">
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                  <TableCell onClick={(e) => e.stopPropagation()} className="flex gap-2 justify-center">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title="View"
+                      onClick={() => handleRowClick(team)}
+                    >
+                      <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                     </Button>
                     <Link to={`/admin/team/edit/${team.id}`}>
                       <Button size="icon" variant="ghost" title="Edit">
                         <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
                       </Button>
                     </Link>
-                    <Button size="icon" variant="ghost" title="View">
-                      <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
-                    </Button>
-                    <Button size="icon" variant="ghost" title="More">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title="More"
+                      onClick={() => handleRowClick(team)}
+                    >
                       <MoreVertical className="w-4 h-4 text-gray-600 dark:text-white" />
                     </Button>
                   </TableCell>
@@ -498,6 +552,349 @@ const RegisteredTeams: React.FC = () => {
           itemsPerPage={pageSize}
           onPageChange={setCurrentPage}
         />
+      )}
+
+      {/* Team Detail Modal */}
+      {showTeamModal && selectedTeam && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                {selectedTeam.photo ? (
+                  <img
+                    src={selectedTeam.photo}
+                    alt={getTeamDisplayName(selectedTeam)}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-gray-500" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    {getTeamDisplayName(selectedTeam)}
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    @{selectedTeam.username}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link to={`/admin/team/edit/${selectedTeam.id}`}>
+                  <Button variant="outline" size="sm">
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+                <button
+                  onClick={closeTeamModal}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Contact Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Contact Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedTeam.email || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="dark:text-white">
+                        {selectedTeam.mobileNumber || "-"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> Location
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">City:</span>
+                      <span className="dark:text-white">{selectedTeam.city || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
+                      <span className="dark:text-white">{selectedTeam.country || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
+                      <span className="dark:text-white">{selectedTeam.address || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Team Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Team Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Team Name:</span>
+                      <span className="dark:text-white">{selectedTeam.teamName || selectedTeam.company || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Club:</span>
+                      <span className="dark:text-white">{selectedTeam.club || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Team Type:</span>
+                      <span className="dark:text-white">{selectedTeam.teamType || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Category:</span>
+                      <span className="dark:text-white">{selectedTeam.teamCategory || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sport Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Globe className="w-4 h-4" /> Sport Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Sport:</span>
+                      <span className="dark:text-white">{selectedTeam.sport || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Profession:</span>
+                      <span className="dark:text-white">{selectedTeam.profession || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Specialization:</span>
+                      <span className="dark:text-white">{selectedTeam.subProfession || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Certification:</span>
+                      <span className="dark:text-white">{selectedTeam.certificationLevel || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Personal Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" /> Personal Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Name:</span>
+                      <span className="dark:text-white">
+                        {`${selectedTeam.firstName || ""} ${selectedTeam.lastName || ""}`.trim() || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
+                      <span className="dark:text-white">{selectedTeam.age || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
+                      <span className="dark:text-white capitalize">{selectedTeam.gender || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Info */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Account Info
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <Badge
+                        className={
+                          selectedTeam.stripeCustomerId
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }
+                      >
+                        {selectedTeam.stripeCustomerId ? "Premium" : "Free"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
+                      <span className="dark:text-white">{formatDate(selectedTeam.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
+                      <span className="dark:text-white">{formatDate(selectedTeam.updatedAt)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {selectedTeam.bio && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Bio
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                    {selectedTeam.bio}
+                  </p>
+                </div>
+              )}
+
+              {/* Languages */}
+              {selectedTeam.language && selectedTeam.language.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Languages
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTeam.language.map((lang, idx) => (
+                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                        {lang.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Social Links */}
+              {selectedTeam.socialLinks && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Social Links
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {selectedTeam.socialLinks.instagram && (
+                      <a
+                        href={
+                          selectedTeam.socialLinks.instagram.startsWith("http")
+                            ? selectedTeam.socialLinks.instagram
+                            : `https://instagram.com/${selectedTeam.socialLinks.instagram}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
+                      >
+                        <Instagram className="w-5 h-5" />
+                        <span className="text-sm">{selectedTeam.socialLinks.instagram}</span>
+                      </a>
+                    )}
+                    {selectedTeam.socialLinks.facebook && (
+                      <a
+                        href={
+                          selectedTeam.socialLinks.facebook.startsWith("http")
+                            ? selectedTeam.socialLinks.facebook
+                            : `https://facebook.com/${selectedTeam.socialLinks.facebook}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <Facebook className="w-5 h-5" />
+                        <span className="text-sm">{selectedTeam.socialLinks.facebook}</span>
+                      </a>
+                    )}
+                    {selectedTeam.socialLinks.twitter && (
+                      <a
+                        href={
+                          selectedTeam.socialLinks.twitter.startsWith("http")
+                            ? selectedTeam.socialLinks.twitter
+                            : `https://twitter.com/${selectedTeam.socialLinks.twitter}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
+                      >
+                        <Twitter className="w-5 h-5" />
+                        <span className="text-sm">{selectedTeam.socialLinks.twitter}</span>
+                      </a>
+                    )}
+                    {selectedTeam.socialLinks.linkedin && (
+                      <a
+                        href={
+                          selectedTeam.socialLinks.linkedin.startsWith("http")
+                            ? selectedTeam.socialLinks.linkedin
+                            : `https://linkedin.com/in/${selectedTeam.socialLinks.linkedin}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
+                      >
+                        <Linkedin className="w-5 h-5" />
+                        <span className="text-sm">{selectedTeam.socialLinks.linkedin}</span>
+                      </a>
+                    )}
+                    {!selectedTeam.socialLinks.instagram &&
+                      !selectedTeam.socialLinks.facebook &&
+                      !selectedTeam.socialLinks.twitter &&
+                      !selectedTeam.socialLinks.linkedin && (
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">
+                          No social links available
+                        </span>
+                      )}
+                  </div>
+                </div>
+              )}
+
+              {/* Referral Info */}
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Referral Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <p className="font-mono font-semibold dark:text-white">
+                      {selectedTeam.referralCode || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <p className="font-mono dark:text-white">
+                      {selectedTeam.referredBy || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <p className="dark:text-white">
+                      {selectedTeam.referredFree?.length || 0} / {selectedTeam.referredPaid?.length || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Actions */}
+              <div className="border-t dark:border-gray-700 pt-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  User Actions
+                </h3>
+                <UserActions
+                  userId={selectedTeam.id}
+                  userEmail={selectedTeam.email}
+                  username={selectedTeam.username}
+                  onActionComplete={handleActionComplete}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
