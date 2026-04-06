@@ -18,6 +18,23 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import UserActions from "@/components/admin/UserActions";
 
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 interface PlayerData {
   id: string;
   firstName: string | null;
@@ -76,16 +93,65 @@ const Player: React.FC = () => {
   const [months, setMonths] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [players, setPlayers] = useState<PlayerData[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [totalPlayers, setTotalPlayers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerData | null>(null);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const pageSize = 10;
-  const totalPages = Math.ceil(totalPlayers / pageSize);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+
+  // Search players using the global search API
+  const searchPlayers = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profiles/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: pageSize,
+            role: "player",
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "API-Key": token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+        setPlayers(searchResults);
+        setFilteredPlayers(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalPlayers(searchResults.length);
+      }
+    } catch (err: any) {
+      console.error("Error searching players:", err);
+      setError(err.response?.data?.message || "Failed to search players");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
 
   const fetchPlayers = async (page: number) => {
     try {
@@ -113,13 +179,17 @@ const Player: React.FC = () => {
 
       if (response.status === 200) {
         setPlayers(response.data);
+        setFilteredPlayers(response.data);
         // Estimate total players for pagination
         if (response.data.length < pageSize && page === 1) {
           setTotalPlayers(response.data.length);
+          setTotalPages(1);
         } else if (response.data.length < pageSize) {
           setTotalPlayers((page - 1) * pageSize + response.data.length);
+          setTotalPages(page);
         } else {
           setTotalPlayers(page * pageSize + 1);
+          setTotalPages(page + 1);
         }
       }
     } catch (error: any) {
@@ -162,13 +232,47 @@ const Player: React.FC = () => {
     fetchMonths();
   }, []);
 
+  // Handle debounced search
   useEffect(() => {
-    fetchPlayers(currentPage);
+    if (debouncedSearchTerm.trim()) {
+      searchPlayers(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchPlayers(currentPage);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle page changes (only when not searching)
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchPlayers(currentPage);
+    }
   }, [currentPage]);
+
+  // Filter players by month (client-side filter on current results)
+  useEffect(() => {
+    let filtered = players;
+
+    // Filter by month
+    if (selectedMonth && selectedMonth !== "All Months") {
+      filtered = filtered.filter((player) => {
+        const playerMonth = new Date(player.createdAt).toLocaleDateString(
+          "en-US",
+          { month: "long" }
+        );
+        return playerMonth === selectedMonth;
+      });
+    }
+
+    setFilteredPlayers(filtered);
+  }, [players, selectedMonth]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
+      if (debouncedSearchTerm.trim()) {
+        searchPlayers(debouncedSearchTerm, newPage);
+      }
     }
   };
 
@@ -196,20 +300,6 @@ const Player: React.FC = () => {
     return player.stripeCustomerId ? "Pro" : "Free";
   };
 
-  const filteredPlayers = players.filter((player) => {
-    const fullName = getFullName(player);
-    const matchesSearch =
-      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      player.username.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (selectedMonth === "All Months" || !selectedMonth) return matchesSearch;
-
-    const playerMonth = new Date(player.createdAt).toLocaleDateString("en-US", {
-      month: "long",
-    });
-    return matchesSearch && playerMonth === selectedMonth;
-  });
-
   const handleRowClick = (player: PlayerData) => {
     setSelectedPlayer(player);
     setShowPlayerModal(true);
@@ -221,7 +311,11 @@ const Player: React.FC = () => {
   };
 
   const handleActionComplete = () => {
-    fetchPlayers(currentPage);
+    if (debouncedSearchTerm.trim()) {
+      searchPlayers(debouncedSearchTerm, currentPage);
+    } else {
+      fetchPlayers(currentPage);
+    }
   };
 
   if (loading) {
@@ -245,7 +339,11 @@ const Player: React.FC = () => {
         <h2 className="text-xl md:text-2xl font-semibold">Players Details</h2>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
             <Input
               type="text"
               placeholder="Search by name or username"

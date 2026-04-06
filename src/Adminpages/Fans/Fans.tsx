@@ -10,11 +10,29 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Trash2, Eye, MoreHorizontal, Pencil, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
+import { Trash2, Eye, MoreHorizontal, Pencil, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import axios from "axios";
 import UserActions from "@/components/admin/UserActions";
+
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface User {
   id: string;
@@ -70,11 +88,59 @@ const Fanandfollowers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const pageSize = 10;
-  const totalPages = Math.ceil(totalUsers / pageSize);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+
+  // Search users using the global search API
+  const searchUsers = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profiles/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: pageSize,
+            role: "user",
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "API-Key": token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+        setUsers(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalUsers(searchResults.length);
+      }
+    } catch (err: any) {
+      console.error("Error searching users:", err);
+      setError(err.response?.data?.message || "Failed to search users");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
 
   const fetchUsers = async (page: number) => {
     try {
@@ -103,11 +169,14 @@ const Fanandfollowers = () => {
         // If your API returns total count, use it. Otherwise estimate from response
         if (response.data.length < pageSize && page === 1) {
           setTotalUsers(response.data.length);
+          setTotalPages(1);
         } else if (response.data.length < pageSize) {
           setTotalUsers((page - 1) * pageSize + response.data.length);
+          setTotalPages(page);
         } else {
           // Estimate total - you might want to add a separate count endpoint
           setTotalUsers(page * pageSize + 1);
+          setTotalPages(page + 1);
         }
       }
     } catch (error: any) {
@@ -127,13 +196,29 @@ const Fanandfollowers = () => {
     }
   };
 
+  // Handle debounced search
   useEffect(() => {
-    fetchUsers(currentPage);
+    if (debouncedSearchTerm.trim()) {
+      searchUsers(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchUsers(currentPage);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle page changes (only when not searching)
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchUsers(currentPage);
+    }
   }, [currentPage]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
+      if (debouncedSearchTerm.trim()) {
+        searchUsers(debouncedSearchTerm, newPage);
+      }
     }
   };
 
@@ -148,7 +233,11 @@ const Fanandfollowers = () => {
   };
 
   const handleActionComplete = () => {
-    fetchUsers(currentPage);
+    if (debouncedSearchTerm.trim()) {
+      searchUsers(debouncedSearchTerm, currentPage);
+    } else {
+      fetchUsers(currentPage);
+    }
   };
 
   const getFullName = (user: User) => {
@@ -177,13 +266,29 @@ const Fanandfollowers = () => {
     <div className="p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-2xl font-semibold">Fans And Followers</h2>
-        <Button
-          onClick={() => fetchUsers(currentPage)}
-          variant="outline"
-          size="sm"
-        >
-          Refresh
-        </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
+            <Input
+              type="text"
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-full dark:bg-slate-700 text-sm sm:text-base"
+            />
+          </div>
+          <Button
+            onClick={() => handleActionComplete()}
+            variant="outline"
+            size="sm"
+          >
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {error && (

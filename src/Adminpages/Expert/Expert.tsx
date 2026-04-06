@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,23 @@ import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import UserActions from "@/components/admin/UserActions";
+
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface Expert {
   id: string;
@@ -64,24 +81,73 @@ const Expert: React.FC = () => {
   const [filteredExperts, setFilteredExperts] = useState<Expert[]>([]);
   const [months, setMonths] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [showExpertModal, setShowExpertModal] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const pageSize = 10;
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  // Calculate pagination based on filtered data
-  const totalPages = Math.ceil(filteredExperts.length / pageSize);
+  // Calculate pagination based on filtered data (for month filtering)
   const paginatedExperts = filteredExperts.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  // Fetch experts data
-  const fetchExperts = async () => {
+  // Search experts using the global search API
+  const searchExperts = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const adminToken = localStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profiles/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: pageSize,
+            role: "expert",
+          },
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "api-key": adminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+        setExperts(searchResults);
+        setFilteredExperts(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalCount(searchResults.length);
+      }
+    } catch (err: any) {
+      console.error("Error searching experts:", err);
+      setError(err.response?.data?.message || "Failed to search experts");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
+
+  // Fetch experts data (when no search term)
+  const fetchExperts = async (page: number = 1) => {
     try {
       setLoading(true);
       setError("");
@@ -96,8 +162,8 @@ const Expert: React.FC = () => {
 
       const response = await axios.get(`${import.meta.env.VITE_PORT}/expert/`, {
         params: {
-          page: 1,
-          limit: 1000, // Get all experts for client-side pagination and filtering
+          page: page,
+          limit: pageSize,
         },
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -109,9 +175,13 @@ const Expert: React.FC = () => {
       if (response.data && response.data.data) {
         setExperts(response.data.data);
         setFilteredExperts(response.data.data);
+        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / pageSize));
+        setTotalCount(response.data.total || response.data.data.length);
       } else {
         setExperts([]);
         setFilteredExperts([]);
+        setTotalPages(1);
+        setTotalCount(0);
       }
     } catch (err: any) {
       console.error("Error fetching experts:", err);
@@ -151,23 +221,29 @@ const Expert: React.FC = () => {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchExperts();
+    fetchExperts(1);
   }, []);
 
-  // Filter experts based on search and month
+  // Handle debounced search
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      searchExperts(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchExperts(currentPage);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle page changes (only when not searching)
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchExperts(currentPage);
+    }
+  }, [currentPage]);
+
+  // Filter experts by month (client-side filter on current results)
   useEffect(() => {
     let filtered = experts;
-
-    // Filter by search term (name or email)
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (expert) =>
-          `${expert.firstName} ${expert.lastName}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          expert.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
 
     // Filter by month
     if (selectedMonth && selectedMonth !== "All Months") {
@@ -181,8 +257,7 @@ const Expert: React.FC = () => {
     }
 
     setFilteredExperts(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
-  }, [experts, searchTerm, selectedMonth]);
+  }, [experts, selectedMonth]);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -232,7 +307,18 @@ const Expert: React.FC = () => {
   };
 
   const handleActionComplete = () => {
-    fetchExperts();
+    if (debouncedSearchTerm.trim()) {
+      searchExperts(debouncedSearchTerm, currentPage);
+    } else {
+      fetchExperts(currentPage);
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (debouncedSearchTerm.trim()) {
+      searchExperts(debouncedSearchTerm, page);
+    }
   };
 
   if (loading) {
@@ -273,7 +359,11 @@ const Expert: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative w-full sm:w-64 dark:bg-slate-600 dark:text-white rounded-lg">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            {isSearching ? (
+              <Loader2 className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
             <Input
               type="text"
               placeholder="Search by name or email"
@@ -383,27 +473,38 @@ const Expert: React.FC = () => {
           <button
             className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
           >
             ⟨
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`border px-2 rounded ${
-                currentPage === i + 1 ? "bg-gray-300 dark:bg-gray-600" : ""
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+
+            return (
+              <button
+                key={pageNum}
+                className={`border px-2 rounded ${
+                  currentPage === pageNum ? "bg-gray-300 dark:bg-gray-600" : ""
+                }`}
+                onClick={() => handlePageChange(pageNum)}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
           <button
             className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
           >
             ⟩
           </button>

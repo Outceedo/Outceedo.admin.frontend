@@ -36,6 +36,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 import UserActions from "@/components/admin/UserActions";
 
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 // Interface based on your actual API response
 interface Team {
   id: string;
@@ -166,11 +183,14 @@ const RegisteredTeams: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showTeamModal, setShowTeamModal] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const pageSize = 10;
-  const totalPages = Math.ceil(filteredTeams.length / pageSize);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+
   const paginatedTeams = filteredTeams.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -196,8 +216,53 @@ const RegisteredTeams: React.FC = () => {
     setMonths(monthList);
   }, []);
 
+  // Search teams using the global search API
+  const searchTeams = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const adminToken = localStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profiles/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: pageSize,
+            role: "team",
+          },
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "api-key": adminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+        setTeams(searchResults);
+        setFilteredTeams(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+      }
+    } catch (err: any) {
+      console.error("Error searching teams:", err);
+      setError(err.response?.data?.message || "Failed to search teams");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
+
   // Fetch teams data
-  const fetchTeams = async () => {
+  const fetchTeams = async (page: number = 1) => {
     try {
       setLoading(true);
       setError("");
@@ -214,8 +279,8 @@ const RegisteredTeams: React.FC = () => {
         `${import.meta.env.VITE_PORT}/team/teams`,
         {
           params: {
-            page: 1,
-            limit: 10,
+            page: page,
+            limit: pageSize,
           },
           headers: {
             Authorization: `Bearer ${adminToken}`,
@@ -228,13 +293,16 @@ const RegisteredTeams: React.FC = () => {
       if (response.data && response.data.data) {
         setTeams(response.data.data);
         setFilteredTeams(response.data.data);
+        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / pageSize));
       } else if (Array.isArray(response.data)) {
         // Handle case where data is directly an array
         setTeams(response.data);
         setFilteredTeams(response.data);
+        setTotalPages(Math.ceil(response.data.length / pageSize) || 1);
       } else {
         setTeams([]);
         setFilteredTeams([]);
+        setTotalPages(1);
       }
     } catch (err: any) {
       console.error("Error fetching teams:", err);
@@ -252,24 +320,31 @@ const RegisteredTeams: React.FC = () => {
     }
   };
 
-  // Filter teams based on search and month
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchTeams(1);
+  }, []);
+
+  // Handle debounced search
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      searchTeams(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchTeams(currentPage);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle page changes (only when not searching)
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchTeams(currentPage);
+    }
+  }, [currentPage]);
+
+  // Filter teams by month (client-side filter on current results)
   useEffect(() => {
     let filtered = teams;
-
-    // Filter by search term (name, username, company, or club)
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (team) =>
-          `${team.firstName} ${team.lastName}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          team.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (team.company &&
-            team.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (team.club &&
-            team.club.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
 
     // Filter by month
     if (selectedMonth && selectedMonth !== "All Months") {
@@ -282,13 +357,14 @@ const RegisteredTeams: React.FC = () => {
     }
 
     setFilteredTeams(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
-  }, [teams, searchTerm, selectedMonth]);
+  }, [teams, selectedMonth]);
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchTeams();
-  }, []);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (debouncedSearchTerm.trim()) {
+      searchTeams(debouncedSearchTerm, page);
+    }
+  };
 
   // Helper functions
   const formatDate = (dateString: string) => {
@@ -374,7 +450,11 @@ const RegisteredTeams: React.FC = () => {
   };
 
   const handleActionComplete = () => {
-    fetchTeams();
+    if (debouncedSearchTerm.trim()) {
+      searchTeams(debouncedSearchTerm, currentPage);
+    } else {
+      fetchTeams(currentPage);
+    }
   };
 
   if (loading) {
@@ -418,7 +498,11 @@ const RegisteredTeams: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative w-full sm:w-64 dark:bg-slate-600 dark:text-white rounded-lg">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            {isSearching ? (
+              <Loader2 className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
             <Input
               type="text"
               placeholder="Search teams..."
@@ -550,7 +634,7 @@ const RegisteredTeams: React.FC = () => {
           totalPages={totalPages}
           totalItems={filteredTeams.length}
           itemsPerPage={pageSize}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       )}
 

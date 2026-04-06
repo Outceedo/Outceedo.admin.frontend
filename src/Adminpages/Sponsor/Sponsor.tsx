@@ -18,6 +18,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 import UserActions from "@/components/admin/UserActions";
 
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 interface Sponsor {
   id: string;
   firstName: string;
@@ -146,22 +163,69 @@ const Sponsor: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [showSponsorModal, setShowSponsorModal] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const itemsPerPage = 7;
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
   // Calculate pagination based on filtered data
-  const totalPages = Math.ceil(filteredSponsors.length / itemsPerPage);
   const paginatedSponsors = filteredSponsors.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  // Search sponsors using the global search API
+  const searchSponsors = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const adminToken = localStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profiles/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: itemsPerPage,
+            role: "sponsor",
+          },
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "api-key": adminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+        setSponsors(searchResults);
+        setFilteredSponsors(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+      }
+    } catch (err: any) {
+      console.error("Error searching sponsors:", err);
+      setError(err.response?.data?.message || "Failed to search sponsors");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
+
   // Fetch sponsors data
-  const fetchSponsors = async () => {
+  const fetchSponsors = async (page: number = 1) => {
     try {
       setLoading(true);
       setError("");
@@ -178,8 +242,8 @@ const Sponsor: React.FC = () => {
         `${import.meta.env.VITE_PORT}/sponsor/sponsors`,
         {
           params: {
-            page: 1,
-            limit: 10, // Get all sponsors for client-side pagination and filtering
+            page: page,
+            limit: itemsPerPage,
           },
           headers: {
             Authorization: `Bearer ${adminToken}`,
@@ -192,9 +256,11 @@ const Sponsor: React.FC = () => {
       if (response.data && response.data.data) {
         setSponsors(response.data.data);
         setFilteredSponsors(response.data.data);
+        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / itemsPerPage));
       } else {
         setSponsors([]);
         setFilteredSponsors([]);
+        setTotalPages(1);
       }
     } catch (err: any) {
       console.error("Error fetching sponsors:", err);
@@ -236,27 +302,29 @@ const Sponsor: React.FC = () => {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchSponsors();
+    fetchSponsors(1);
   }, []);
 
-  // Filter sponsors based on search and month
+  // Handle debounced search
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      searchSponsors(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchSponsors(currentPage);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Handle page changes (only when not searching)
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchSponsors(currentPage);
+    }
+  }, [currentPage]);
+
+  // Filter sponsors by month (client-side filter on current results)
   useEffect(() => {
     let filtered = sponsors;
-
-    // Filter by search term (name or email)
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (sponsor) =>
-          `${sponsor.firstName} ${sponsor.lastName}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          sponsor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (sponsor.companyName &&
-            sponsor.companyName
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()))
-      );
-    }
 
     // Filter by month
     if (selectedMonth && selectedMonth !== "All Months") {
@@ -270,8 +338,14 @@ const Sponsor: React.FC = () => {
     }
 
     setFilteredSponsors(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
-  }, [sponsors, searchTerm, selectedMonth]);
+  }, [sponsors, selectedMonth]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    if (debouncedSearchTerm.trim()) {
+      searchSponsors(debouncedSearchTerm, page);
+    }
+  };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -337,7 +411,11 @@ const Sponsor: React.FC = () => {
   };
 
   const handleActionComplete = () => {
-    fetchSponsors();
+    if (debouncedSearchTerm.trim()) {
+      searchSponsors(debouncedSearchTerm, currentPage);
+    } else {
+      fetchSponsors(currentPage);
+    }
   };
 
   if (loading) {
@@ -377,7 +455,11 @@ const Sponsor: React.FC = () => {
         </h2>
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           <div className="relative w-full sm:w-64 dark:bg-slate-600 dark:text-white rounded-lg">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            {isSearching ? (
+              <Loader2 className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
             <Input
               type="text"
               placeholder="Search sponsors..."
@@ -509,7 +591,7 @@ const Sponsor: React.FC = () => {
           totalPages={totalPages}
           totalItems={filteredSponsors.length}
           itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       </div>
 
