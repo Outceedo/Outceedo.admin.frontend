@@ -8,7 +8,23 @@ import {
   TableHeader,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, X, Mail, Phone, MapPin, User, Calendar, Ruler, Weight, Globe, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
+import {
+  Search,
+  Loader2,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Calendar,
+  Ruler,
+  Weight,
+  Globe,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -121,7 +137,7 @@ const Player: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/profiles/search`,
+        `https://api.outceedo.com/users/profiles/search`,
         {
           params: {
             q: query,
@@ -134,7 +150,7 @@ const Player: React.FC = () => {
             "API-Key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -174,7 +190,7 @@ const Player: React.FC = () => {
             "API-Key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -258,7 +274,7 @@ const Player: React.FC = () => {
       filtered = filtered.filter((player) => {
         const playerMonth = new Date(player.createdAt).toLocaleDateString(
           "en-US",
-          { month: "long" }
+          { month: "long" },
         );
         return playerMonth === selectedMonth;
       });
@@ -657,16 +673,28 @@ const Player: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">City:</span>
-                      <span className="dark:text-white">{selectedPlayer.city || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        City:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.city || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
-                      <span className="dark:text-white">{selectedPlayer.country || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.country || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
-                      <span className="dark:text-white">{selectedPlayer.address || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Address:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.address || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -678,16 +706,28 @@ const Player: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
-                      <span className="dark:text-white">{selectedPlayer.age || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Age:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.age || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
-                      <span className="dark:text-white">{selectedPlayer.birthYear || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Birth Year:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.birthYear || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
-                      <span className="dark:text-white capitalize">{selectedPlayer.gender || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Gender:
+                      </span>
+                      <span className="dark:text-white capitalize">
+                        {selectedPlayer.gender || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -701,13 +741,17 @@ const Player: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Ruler className="w-4 h-4 text-gray-400" />
                       <span className="dark:text-white">
-                        {selectedPlayer.height ? `${selectedPlayer.height} cm` : "-"}
+                        {selectedPlayer.height
+                          ? `${selectedPlayer.height} cm`
+                          : "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Weight className="w-4 h-4 text-gray-400" />
                       <span className="dark:text-white">
-                        {selectedPlayer.weight ? `${selectedPlayer.weight} kg` : "-"}
+                        {selectedPlayer.weight
+                          ? `${selectedPlayer.weight} kg`
+                          : "-"}
                       </span>
                     </div>
                   </div>
@@ -720,16 +764,28 @@ const Player: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Sport:</span>
-                      <span className="dark:text-white">{selectedPlayer.sport || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Sport:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.sport || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Position:</span>
-                      <span className="dark:text-white">{selectedPlayer.subProfession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Position:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.subProfession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Club:</span>
-                      <span className="dark:text-white">{selectedPlayer.club || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Club:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.club || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -741,7 +797,9 @@ const Player: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
                       <Badge
                         className={
                           selectedPlayer.stripeCustomerId
@@ -753,12 +811,20 @@ const Player: React.FC = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
-                      <span className="dark:text-white">{formatDate(selectedPlayer.createdAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Joined:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedPlayer.createdAt)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                      <span className="dark:text-white">{formatDate(selectedPlayer.updatedAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Updated:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedPlayer.updatedAt)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -777,20 +843,25 @@ const Player: React.FC = () => {
               )}
 
               {/* Languages */}
-              {selectedPlayer.language && selectedPlayer.language.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Languages
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPlayer.language.map((lang, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
-                        {lang.trim()}
-                      </Badge>
-                    ))}
+              {selectedPlayer.language &&
+                selectedPlayer.language.length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Languages
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPlayer.language.map((lang, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="dark:border-gray-500"
+                        >
+                          {lang.trim()}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Social Links */}
               {selectedPlayer.socialLinks && (
@@ -802,7 +873,9 @@ const Player: React.FC = () => {
                     {selectedPlayer.socialLinks.instagram && (
                       <a
                         href={
-                          selectedPlayer.socialLinks.instagram.startsWith("http")
+                          selectedPlayer.socialLinks.instagram.startsWith(
+                            "http",
+                          )
                             ? selectedPlayer.socialLinks.instagram
                             : `https://instagram.com/${selectedPlayer.socialLinks.instagram}`
                         }
@@ -811,7 +884,9 @@ const Player: React.FC = () => {
                         className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
                       >
                         <Instagram className="w-5 h-5" />
-                        <span className="text-sm">{selectedPlayer.socialLinks.instagram}</span>
+                        <span className="text-sm">
+                          {selectedPlayer.socialLinks.instagram}
+                        </span>
                       </a>
                     )}
                     {selectedPlayer.socialLinks.facebook && (
@@ -826,7 +901,9 @@ const Player: React.FC = () => {
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                       >
                         <Facebook className="w-5 h-5" />
-                        <span className="text-sm">{selectedPlayer.socialLinks.facebook}</span>
+                        <span className="text-sm">
+                          {selectedPlayer.socialLinks.facebook}
+                        </span>
                       </a>
                     )}
                     {selectedPlayer.socialLinks.twitter && (
@@ -841,7 +918,9 @@ const Player: React.FC = () => {
                         className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
                       >
                         <Twitter className="w-5 h-5" />
-                        <span className="text-sm">{selectedPlayer.socialLinks.twitter}</span>
+                        <span className="text-sm">
+                          {selectedPlayer.socialLinks.twitter}
+                        </span>
                       </a>
                     )}
                     {selectedPlayer.socialLinks.linkedin && (
@@ -856,7 +935,9 @@ const Player: React.FC = () => {
                         className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
                       >
                         <Linkedin className="w-5 h-5" />
-                        <span className="text-sm">{selectedPlayer.socialLinks.linkedin}</span>
+                        <span className="text-sm">
+                          {selectedPlayer.socialLinks.linkedin}
+                        </span>
                       </a>
                     )}
                     {!selectedPlayer.socialLinks.instagram &&
@@ -878,21 +959,28 @@ const Player: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referral Code:
+                    </span>
                     <p className="font-mono font-semibold dark:text-white">
                       {selectedPlayer.referralCode || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referred By:
+                    </span>
                     <p className="font-mono dark:text-white">
                       {selectedPlayer.referredBy || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referrals (Free/Paid):
+                    </span>
                     <p className="dark:text-white">
-                      {selectedPlayer.referredFree?.length || 0} / {selectedPlayer.referredPaid?.length || 0}
+                      {selectedPlayer.referredFree?.length || 0} /{" "}
+                      {selectedPlayer.referredPaid?.length || 0}
                     </p>
                   </div>
                 </div>

@@ -10,7 +10,25 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Trash2, Eye, MoreHorizontal, Pencil, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin, Search } from "lucide-react";
+import {
+  Trash2,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Loader2,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Calendar,
+  Globe,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
@@ -111,7 +129,8 @@ const Fanandfollowers = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/profiles/search`,
+        `https://api.outceedo.com/users/profiles/search`,
+
         {
           params: {
             q: query,
@@ -124,7 +143,7 @@ const Fanandfollowers = () => {
             "API-Key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -161,7 +180,7 @@ const Fanandfollowers = () => {
             "API-Key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -381,10 +400,10 @@ const Fanandfollowers = () => {
                   <TableCell>
                     <span
                       className={`rounded-lg px-3 py-1 text-xs font-semibold ${statusClass(
-                        user.isActive ?? true
+                        user.isActive ?? true,
                       )}`}
                     >
-                      {user.isActive ?? true ? "Active" : "Inactive"}
+                      {(user.isActive ?? true) ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -424,7 +443,7 @@ const Fanandfollowers = () => {
             Showing {(currentPage - 1) * pageSize + 1}–
             {Math.min(
               currentPage * pageSize,
-              (currentPage - 1) * pageSize + users.length
+              (currentPage - 1) * pageSize + users.length,
             )}{" "}
             of {totalUsers}
           </div>
@@ -480,7 +499,7 @@ const Fanandfollowers = () => {
             {/* Modal Header */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                {(selectedUser.photo || selectedUser.profilePicture) ? (
+                {selectedUser.photo || selectedUser.profilePicture ? (
                   <img
                     src={selectedUser.photo || selectedUser.profilePicture}
                     alt={getFullName(selectedUser)}
@@ -496,7 +515,9 @@ const Fanandfollowers = () => {
                     {getFullName(selectedUser)}
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    {selectedUser.username ? `@${selectedUser.username}` : selectedUser.email}
+                    {selectedUser.username
+                      ? `@${selectedUser.username}`
+                      : selectedUser.email}
                   </p>
                 </div>
               </div>
@@ -548,16 +569,28 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">City:</span>
-                      <span className="dark:text-white">{selectedUser.city || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        City:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.city || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
-                      <span className="dark:text-white">{selectedUser.country || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.country || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
-                      <span className="dark:text-white">{selectedUser.address || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Address:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.address || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -569,16 +602,28 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
-                      <span className="dark:text-white">{selectedUser.age || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Age:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.age || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
-                      <span className="dark:text-white">{selectedUser.birthYear || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Birth Year:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.birthYear || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
-                      <span className="dark:text-white capitalize">{selectedUser.gender || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Gender:
+                      </span>
+                      <span className="dark:text-white capitalize">
+                        {selectedUser.gender || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -590,12 +635,20 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Profession:</span>
-                      <span className="dark:text-white">{selectedUser.profession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Profession:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.profession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Specialization:</span>
-                      <span className="dark:text-white">{selectedUser.subProfession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Specialization:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.subProfession || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -607,7 +660,9 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
                       <Badge
                         className={
                           selectedUser.stripeCustomerId
@@ -619,12 +674,22 @@ const Fanandfollowers = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
-                      <span className="dark:text-white">{formatDate(selectedUser.createdAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Joined:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedUser.createdAt)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                      <span className="dark:text-white">{selectedUser.updatedAt ? formatDate(selectedUser.updatedAt) : "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Updated:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedUser.updatedAt
+                          ? formatDate(selectedUser.updatedAt)
+                          : "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -636,13 +701,17 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Account Status:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Account Status:
+                      </span>
                       <span
                         className={`rounded-lg px-3 py-1 text-xs font-semibold ${statusClass(
-                          selectedUser.isActive ?? true
+                          selectedUser.isActive ?? true,
                         )}`}
                       >
-                        {selectedUser.isActive ?? true ? "Active" : "Inactive"}
+                        {(selectedUser.isActive ?? true)
+                          ? "Active"
+                          : "Inactive"}
                       </span>
                     </div>
                   </div>
@@ -669,7 +738,11 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedUser.language.map((lang, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="dark:border-gray-500"
+                      >
                         {lang.trim()}
                       </Badge>
                     ))}
@@ -685,7 +758,11 @@ const Fanandfollowers = () => {
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedUser.interests.map((interest, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="dark:border-gray-500"
+                      >
                         {interest}
                       </Badge>
                     ))}
@@ -712,7 +789,9 @@ const Fanandfollowers = () => {
                         className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
                       >
                         <Instagram className="w-5 h-5" />
-                        <span className="text-sm">{selectedUser.socialLinks.instagram}</span>
+                        <span className="text-sm">
+                          {selectedUser.socialLinks.instagram}
+                        </span>
                       </a>
                     )}
                     {selectedUser.socialLinks.facebook && (
@@ -727,7 +806,9 @@ const Fanandfollowers = () => {
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                       >
                         <Facebook className="w-5 h-5" />
-                        <span className="text-sm">{selectedUser.socialLinks.facebook}</span>
+                        <span className="text-sm">
+                          {selectedUser.socialLinks.facebook}
+                        </span>
                       </a>
                     )}
                     {selectedUser.socialLinks.twitter && (
@@ -742,7 +823,9 @@ const Fanandfollowers = () => {
                         className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
                       >
                         <Twitter className="w-5 h-5" />
-                        <span className="text-sm">{selectedUser.socialLinks.twitter}</span>
+                        <span className="text-sm">
+                          {selectedUser.socialLinks.twitter}
+                        </span>
                       </a>
                     )}
                     {selectedUser.socialLinks.linkedin && (
@@ -757,7 +840,9 @@ const Fanandfollowers = () => {
                         className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
                       >
                         <Linkedin className="w-5 h-5" />
-                        <span className="text-sm">{selectedUser.socialLinks.linkedin}</span>
+                        <span className="text-sm">
+                          {selectedUser.socialLinks.linkedin}
+                        </span>
                       </a>
                     )}
                     {!selectedUser.socialLinks.instagram &&
@@ -779,21 +864,28 @@ const Fanandfollowers = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referral Code:
+                    </span>
                     <p className="font-mono font-semibold dark:text-white">
                       {selectedUser.referralCode || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referred By:
+                    </span>
                     <p className="font-mono dark:text-white">
                       {selectedUser.referredBy || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referrals (Free/Paid):
+                    </span>
                     <p className="dark:text-white">
-                      {selectedUser.referredFree?.length || 0} / {selectedUser.referredPaid?.length || 0}
+                      {selectedUser.referredFree?.length || 0} /{" "}
+                      {selectedUser.referredPaid?.length || 0}
                     </p>
                   </div>
                 </div>

@@ -193,7 +193,7 @@ const RegisteredTeams: React.FC = () => {
 
   const paginatedTeams = filteredTeams.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   // Initialize months
@@ -230,7 +230,8 @@ const RegisteredTeams: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/profiles/search`,
+        `https://api.outceedo.com/users/profiles/search`,
+
         {
           params: {
             q: query,
@@ -243,7 +244,7 @@ const RegisteredTeams: React.FC = () => {
             "api-key": adminToken,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -287,13 +288,18 @@ const RegisteredTeams: React.FC = () => {
             "api-key": adminToken,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data && response.data.data) {
         setTeams(response.data.data);
         setFilteredTeams(response.data.data);
-        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / pageSize));
+        setTotalPages(
+          response.data.totalPages ||
+            Math.ceil(
+              (response.data.total || response.data.data.length) / pageSize,
+            ),
+        );
       } else if (Array.isArray(response.data)) {
         // Handle case where data is directly an array
         setTeams(response.data);
@@ -418,7 +424,7 @@ const RegisteredTeams: React.FC = () => {
   const getTeamStatus = (team: Team) => {
     // Determine status based on available data
     const hasCompleteProfile = Boolean(
-      team.firstName && team.lastName && (team.company || team.club)
+      team.firstName && team.lastName && (team.company || team.club),
     );
     return hasCompleteProfile ? "Active" : "Inactive";
   };
@@ -597,7 +603,10 @@ const RegisteredTeams: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>{getStatusBadge(team)}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()} className="flex gap-2 justify-center">
+                  <TableCell
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex gap-2 justify-center"
+                  >
                     <Button
                       size="icon"
                       variant="ghost"
@@ -713,16 +722,28 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">City:</span>
-                      <span className="dark:text-white">{selectedTeam.city || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        City:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.city || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
-                      <span className="dark:text-white">{selectedTeam.country || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.country || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
-                      <span className="dark:text-white">{selectedTeam.address || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Address:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.address || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -734,20 +755,36 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Team Name:</span>
-                      <span className="dark:text-white">{selectedTeam.teamName || selectedTeam.company || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Team Name:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.teamName || selectedTeam.company || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Club:</span>
-                      <span className="dark:text-white">{selectedTeam.club || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Club:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.club || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Team Type:</span>
-                      <span className="dark:text-white">{selectedTeam.teamType || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Team Type:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.teamType || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Category:</span>
-                      <span className="dark:text-white">{selectedTeam.teamCategory || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Category:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.teamCategory || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -759,20 +796,36 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Sport:</span>
-                      <span className="dark:text-white">{selectedTeam.sport || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Sport:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.sport || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Profession:</span>
-                      <span className="dark:text-white">{selectedTeam.profession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Profession:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.profession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Specialization:</span>
-                      <span className="dark:text-white">{selectedTeam.subProfession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Specialization:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.subProfession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Certification:</span>
-                      <span className="dark:text-white">{selectedTeam.certificationLevel || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Certification:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.certificationLevel || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -784,18 +837,29 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Name:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Name:
+                      </span>
                       <span className="dark:text-white">
-                        {`${selectedTeam.firstName || ""} ${selectedTeam.lastName || ""}`.trim() || "-"}
+                        {`${selectedTeam.firstName || ""} ${selectedTeam.lastName || ""}`.trim() ||
+                          "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
-                      <span className="dark:text-white">{selectedTeam.age || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Age:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedTeam.age || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
-                      <span className="dark:text-white capitalize">{selectedTeam.gender || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Gender:
+                      </span>
+                      <span className="dark:text-white capitalize">
+                        {selectedTeam.gender || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -807,7 +871,9 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
                       <Badge
                         className={
                           selectedTeam.stripeCustomerId
@@ -819,12 +885,20 @@ const RegisteredTeams: React.FC = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
-                      <span className="dark:text-white">{formatDate(selectedTeam.createdAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Joined:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedTeam.createdAt)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                      <span className="dark:text-white">{formatDate(selectedTeam.updatedAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Updated:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedTeam.updatedAt)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -850,7 +924,11 @@ const RegisteredTeams: React.FC = () => {
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedTeam.language.map((lang, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
+                      <Badge
+                        key={idx}
+                        variant="outline"
+                        className="dark:border-gray-500"
+                      >
                         {lang.trim()}
                       </Badge>
                     ))}
@@ -877,7 +955,9 @@ const RegisteredTeams: React.FC = () => {
                         className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
                       >
                         <Instagram className="w-5 h-5" />
-                        <span className="text-sm">{selectedTeam.socialLinks.instagram}</span>
+                        <span className="text-sm">
+                          {selectedTeam.socialLinks.instagram}
+                        </span>
                       </a>
                     )}
                     {selectedTeam.socialLinks.facebook && (
@@ -892,7 +972,9 @@ const RegisteredTeams: React.FC = () => {
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                       >
                         <Facebook className="w-5 h-5" />
-                        <span className="text-sm">{selectedTeam.socialLinks.facebook}</span>
+                        <span className="text-sm">
+                          {selectedTeam.socialLinks.facebook}
+                        </span>
                       </a>
                     )}
                     {selectedTeam.socialLinks.twitter && (
@@ -907,7 +989,9 @@ const RegisteredTeams: React.FC = () => {
                         className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
                       >
                         <Twitter className="w-5 h-5" />
-                        <span className="text-sm">{selectedTeam.socialLinks.twitter}</span>
+                        <span className="text-sm">
+                          {selectedTeam.socialLinks.twitter}
+                        </span>
                       </a>
                     )}
                     {selectedTeam.socialLinks.linkedin && (
@@ -922,7 +1006,9 @@ const RegisteredTeams: React.FC = () => {
                         className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
                       >
                         <Linkedin className="w-5 h-5" />
-                        <span className="text-sm">{selectedTeam.socialLinks.linkedin}</span>
+                        <span className="text-sm">
+                          {selectedTeam.socialLinks.linkedin}
+                        </span>
                       </a>
                     )}
                     {!selectedTeam.socialLinks.instagram &&
@@ -944,21 +1030,28 @@ const RegisteredTeams: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referral Code:
+                    </span>
                     <p className="font-mono font-semibold dark:text-white">
                       {selectedTeam.referralCode || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referred By:
+                    </span>
                     <p className="font-mono dark:text-white">
                       {selectedTeam.referredBy || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referrals (Free/Paid):
+                    </span>
                     <p className="dark:text-white">
-                      {selectedTeam.referredFree?.length || 0} / {selectedTeam.referredPaid?.length || 0}
+                      {selectedTeam.referredFree?.length || 0} /{" "}
+                      {selectedTeam.referredPaid?.length || 0}
                     </p>
                   </div>
                 </div>

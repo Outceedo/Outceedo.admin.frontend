@@ -9,7 +9,22 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin, Building } from "lucide-react";
+import {
+  Search,
+  Loader2,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Calendar,
+  Globe,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Building,
+} from "lucide-react";
 import { Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -176,7 +191,7 @@ const Sponsor: React.FC = () => {
   // Calculate pagination based on filtered data
   const paginatedSponsors = filteredSponsors.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   // Search sponsors using the global search API
@@ -193,7 +208,7 @@ const Sponsor: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/profiles/search`,
+        `https://api.outceedo.com/users/profiles/search`,
         {
           params: {
             q: query,
@@ -206,7 +221,7 @@ const Sponsor: React.FC = () => {
             "api-key": adminToken,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -250,13 +265,18 @@ const Sponsor: React.FC = () => {
             "api-key": adminToken,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data && response.data.data) {
         setSponsors(response.data.data);
         setFilteredSponsors(response.data.data);
-        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / itemsPerPage));
+        setTotalPages(
+          response.data.totalPages ||
+            Math.ceil(
+              (response.data.total || response.data.data.length) / itemsPerPage,
+            ),
+        );
       } else {
         setSponsors([]);
         setFilteredSponsors([]);
@@ -272,7 +292,7 @@ const Sponsor: React.FC = () => {
         setError("Sponsors endpoint not found.");
       } else {
         setError(
-          err.response?.data?.message || "Failed to fetch sponsors data"
+          err.response?.data?.message || "Failed to fetch sponsors data",
         );
       }
     } finally {
@@ -331,7 +351,7 @@ const Sponsor: React.FC = () => {
       filtered = filtered.filter((sponsor) => {
         const sponsorMonth = new Date(sponsor.createdAt).toLocaleDateString(
           "en-US",
-          { month: "long" }
+          { month: "long" },
         );
         return sponsorMonth === selectedMonth;
       });
@@ -530,7 +550,10 @@ const Sponsor: React.FC = () => {
                     className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                     onClick={() => handleRowClick(sponsor)}
                   >
-                    <TableCell onClick={(e) => e.stopPropagation()} className="text-center align-middle">
+                    <TableCell
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-center align-middle"
+                    >
                       <Checkbox />
                     </TableCell>
                     <TableCell className="align-middle">
@@ -556,7 +579,10 @@ const Sponsor: React.FC = () => {
                     <TableCell className="text-center align-middle">
                       {getStatusBadge(sponsor)}
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()} className="text-center align-middle">
+                    <TableCell
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-center align-middle"
+                    >
                       <div className="flex gap-1 sm:gap-2 justify-center">
                         <Button
                           size="icon"
@@ -602,9 +628,11 @@ const Sponsor: React.FC = () => {
             {/* Modal Header */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                {(selectedSponsor.photo || selectedSponsor.profilePicture) ? (
+                {selectedSponsor.photo || selectedSponsor.profilePicture ? (
                   <img
-                    src={selectedSponsor.photo || selectedSponsor.profilePicture}
+                    src={
+                      selectedSponsor.photo || selectedSponsor.profilePicture
+                    }
                     alt={getFullName(selectedSponsor)}
                     className="w-16 h-16 rounded-full object-cover"
                   />
@@ -618,7 +646,9 @@ const Sponsor: React.FC = () => {
                     {getFullName(selectedSponsor)}
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    {selectedSponsor.username ? `@${selectedSponsor.username}` : selectedSponsor.email}
+                    {selectedSponsor.username
+                      ? `@${selectedSponsor.username}`
+                      : selectedSponsor.email}
                   </p>
                 </div>
               </div>
@@ -657,7 +687,9 @@ const Sponsor: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
                       <span className="dark:text-white">
-                        {selectedSponsor.mobileNumber || selectedSponsor.phoneNumber || "-"}
+                        {selectedSponsor.mobileNumber ||
+                          selectedSponsor.phoneNumber ||
+                          "-"}
                       </span>
                     </div>
                   </div>
@@ -670,16 +702,28 @@ const Sponsor: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">City:</span>
-                      <span className="dark:text-white">{selectedSponsor.city || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        City:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.city || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
-                      <span className="dark:text-white">{selectedSponsor.country || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.country || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
-                      <span className="dark:text-white">{selectedSponsor.address || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Address:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.address || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -691,16 +735,28 @@ const Sponsor: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
-                      <span className="dark:text-white">{selectedSponsor.age || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Age:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.age || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
-                      <span className="dark:text-white">{selectedSponsor.birthYear || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Birth Year:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.birthYear || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
-                      <span className="dark:text-white capitalize">{selectedSponsor.gender || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Gender:
+                      </span>
+                      <span className="dark:text-white capitalize">
+                        {selectedSponsor.gender || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -712,16 +768,30 @@ const Sponsor: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Company:</span>
-                      <span className="dark:text-white">{selectedSponsor.company || selectedSponsor.companyName || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Company:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.company ||
+                          selectedSponsor.companyName ||
+                          "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Website:</span>
-                      <span className="dark:text-white">{selectedSponsor.companyLink || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Website:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.companyLink || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Sponsor Type:</span>
-                      <span className="dark:text-white">{selectedSponsor.sponsorType || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Sponsor Type:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.sponsorType || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -733,11 +803,17 @@ const Sponsor: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
-                      <span className="dark:text-white">{selectedSponsor.sponsorshipType || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.sponsorshipType || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Budget:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Budget:
+                      </span>
                       <span className="dark:text-white">
                         {selectedSponsor.sponsorshipBudget
                           ? `£${selectedSponsor.sponsorshipBudget.toLocaleString()}`
@@ -745,8 +821,12 @@ const Sponsor: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Preferred Country:</span>
-                      <span className="dark:text-white">{selectedSponsor.sponsorshipCountryPreferred || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Preferred Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.sponsorshipCountryPreferred || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -758,7 +838,9 @@ const Sponsor: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
                       <Badge
                         className={
                           selectedSponsor.stripeCustomerId
@@ -770,12 +852,22 @@ const Sponsor: React.FC = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
-                      <span className="dark:text-white">{formatDate(selectedSponsor.createdAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Joined:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedSponsor.createdAt)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                      <span className="dark:text-white">{selectedSponsor.updatedAt ? formatDate(selectedSponsor.updatedAt) : "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Updated:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedSponsor.updatedAt
+                          ? formatDate(selectedSponsor.updatedAt)
+                          : "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -794,20 +886,25 @@ const Sponsor: React.FC = () => {
               )}
 
               {/* Languages */}
-              {selectedSponsor.language && selectedSponsor.language.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Languages
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedSponsor.language.map((lang, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
-                        {lang.trim()}
-                      </Badge>
-                    ))}
+              {selectedSponsor.language &&
+                selectedSponsor.language.length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Languages
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSponsor.language.map((lang, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="dark:border-gray-500"
+                        >
+                          {lang.trim()}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Social Links */}
               {selectedSponsor.socialLinks && (
@@ -819,7 +916,9 @@ const Sponsor: React.FC = () => {
                     {selectedSponsor.socialLinks.instagram && (
                       <a
                         href={
-                          selectedSponsor.socialLinks.instagram.startsWith("http")
+                          selectedSponsor.socialLinks.instagram.startsWith(
+                            "http",
+                          )
                             ? selectedSponsor.socialLinks.instagram
                             : `https://instagram.com/${selectedSponsor.socialLinks.instagram}`
                         }
@@ -828,13 +927,17 @@ const Sponsor: React.FC = () => {
                         className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
                       >
                         <Instagram className="w-5 h-5" />
-                        <span className="text-sm">{selectedSponsor.socialLinks.instagram}</span>
+                        <span className="text-sm">
+                          {selectedSponsor.socialLinks.instagram}
+                        </span>
                       </a>
                     )}
                     {selectedSponsor.socialLinks.facebook && (
                       <a
                         href={
-                          selectedSponsor.socialLinks.facebook.startsWith("http")
+                          selectedSponsor.socialLinks.facebook.startsWith(
+                            "http",
+                          )
                             ? selectedSponsor.socialLinks.facebook
                             : `https://facebook.com/${selectedSponsor.socialLinks.facebook}`
                         }
@@ -843,7 +946,9 @@ const Sponsor: React.FC = () => {
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                       >
                         <Facebook className="w-5 h-5" />
-                        <span className="text-sm">{selectedSponsor.socialLinks.facebook}</span>
+                        <span className="text-sm">
+                          {selectedSponsor.socialLinks.facebook}
+                        </span>
                       </a>
                     )}
                     {selectedSponsor.socialLinks.twitter && (
@@ -858,13 +963,17 @@ const Sponsor: React.FC = () => {
                         className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
                       >
                         <Twitter className="w-5 h-5" />
-                        <span className="text-sm">{selectedSponsor.socialLinks.twitter}</span>
+                        <span className="text-sm">
+                          {selectedSponsor.socialLinks.twitter}
+                        </span>
                       </a>
                     )}
                     {selectedSponsor.socialLinks.linkedin && (
                       <a
                         href={
-                          selectedSponsor.socialLinks.linkedin.startsWith("http")
+                          selectedSponsor.socialLinks.linkedin.startsWith(
+                            "http",
+                          )
                             ? selectedSponsor.socialLinks.linkedin
                             : `https://linkedin.com/in/${selectedSponsor.socialLinks.linkedin}`
                         }
@@ -873,7 +982,9 @@ const Sponsor: React.FC = () => {
                         className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
                       >
                         <Linkedin className="w-5 h-5" />
-                        <span className="text-sm">{selectedSponsor.socialLinks.linkedin}</span>
+                        <span className="text-sm">
+                          {selectedSponsor.socialLinks.linkedin}
+                        </span>
                       </a>
                     )}
                     {!selectedSponsor.socialLinks.instagram &&
@@ -895,21 +1006,28 @@ const Sponsor: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referral Code:
+                    </span>
                     <p className="font-mono font-semibold dark:text-white">
                       {selectedSponsor.referralCode || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referred By:
+                    </span>
                     <p className="font-mono dark:text-white">
                       {selectedSponsor.referredBy || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referrals (Free/Paid):
+                    </span>
                     <p className="dark:text-white">
-                      {selectedSponsor.referredFree?.length || 0} / {selectedSponsor.referredPaid?.length || 0}
+                      {selectedSponsor.referredFree?.length || 0} /{" "}
+                      {selectedSponsor.referredPaid?.length || 0}
                     </p>
                   </div>
                 </div>

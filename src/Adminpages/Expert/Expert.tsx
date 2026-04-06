@@ -8,7 +8,20 @@ import {
   TableHeader,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search, X, Mail, Phone, MapPin, User, Calendar, Globe, Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
+import {
+  Search,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Calendar,
+  Globe,
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -97,7 +110,7 @@ const Expert: React.FC = () => {
   // Calculate pagination based on filtered data (for month filtering)
   const paginatedExperts = filteredExperts.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   // Search experts using the global search API
@@ -114,7 +127,8 @@ const Expert: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT}/profiles/search`,
+        `https://api.outceedo.com/users/profiles/search`,
+
         {
           params: {
             q: query,
@@ -127,7 +141,7 @@ const Expert: React.FC = () => {
             "api-key": adminToken,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -175,7 +189,12 @@ const Expert: React.FC = () => {
       if (response.data && response.data.data) {
         setExperts(response.data.data);
         setFilteredExperts(response.data.data);
-        setTotalPages(response.data.totalPages || Math.ceil((response.data.total || response.data.data.length) / pageSize));
+        setTotalPages(
+          response.data.totalPages ||
+            Math.ceil(
+              (response.data.total || response.data.data.length) / pageSize,
+            ),
+        );
         setTotalCount(response.data.total || response.data.data.length);
       } else {
         setExperts([]);
@@ -250,7 +269,7 @@ const Expert: React.FC = () => {
       filtered = filtered.filter((expert) => {
         const expertMonth = new Date(expert.createdAt).toLocaleDateString(
           "en-US",
-          { month: "long" }
+          { month: "long" },
         );
         return expertMonth === selectedMonth;
       });
@@ -432,7 +451,10 @@ const Expert: React.FC = () => {
                   <TableCell>{expert.email}</TableCell>
                   <TableCell>{formatDate(expert.createdAt)}</TableCell>
                   <TableCell>{getStatusBadge(expert)}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()} className="flex gap-2 justify-center">
+                  <TableCell
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex gap-2 justify-center"
+                  >
                     <Button
                       size="icon"
                       variant="ghost"
@@ -504,7 +526,9 @@ const Expert: React.FC = () => {
           <button
             className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
-            onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+            onClick={() =>
+              handlePageChange(Math.min(currentPage + 1, totalPages))
+            }
           >
             ⟩
           </button>
@@ -534,7 +558,9 @@ const Expert: React.FC = () => {
                     {getFullName(selectedExpert)}
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    {selectedExpert.username ? `@${selectedExpert.username}` : selectedExpert.email}
+                    {selectedExpert.username
+                      ? `@${selectedExpert.username}`
+                      : selectedExpert.email}
                   </p>
                 </div>
               </div>
@@ -586,16 +612,28 @@ const Expert: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">City:</span>
-                      <span className="dark:text-white">{selectedExpert.city || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        City:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.city || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Country:</span>
-                      <span className="dark:text-white">{selectedExpert.country || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Country:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.country || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Address:</span>
-                      <span className="dark:text-white">{selectedExpert.address || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Address:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.address || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -607,16 +645,28 @@ const Expert: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Age:</span>
-                      <span className="dark:text-white">{selectedExpert.age || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Age:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.age || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Birth Year:</span>
-                      <span className="dark:text-white">{selectedExpert.birthYear || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Birth Year:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.birthYear || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Gender:</span>
-                      <span className="dark:text-white capitalize">{selectedExpert.gender || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Gender:
+                      </span>
+                      <span className="dark:text-white capitalize">
+                        {selectedExpert.gender || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -628,20 +678,36 @@ const Expert: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Profession:</span>
-                      <span className="dark:text-white">{selectedExpert.profession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Profession:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.profession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Specialization:</span>
-                      <span className="dark:text-white">{selectedExpert.subProfession || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Specialization:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.subProfession || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Certification:</span>
-                      <span className="dark:text-white">{selectedExpert.certificationLevel || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Certification:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.certificationLevel || "-"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Company:</span>
-                      <span className="dark:text-white">{selectedExpert.company || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Company:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.company || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -653,7 +719,9 @@ const Expert: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Type:
+                      </span>
                       <Badge
                         className={
                           selectedExpert.stripeCustomerId
@@ -665,12 +733,22 @@ const Expert: React.FC = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Joined:</span>
-                      <span className="dark:text-white">{formatDate(selectedExpert.createdAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Joined:
+                      </span>
+                      <span className="dark:text-white">
+                        {formatDate(selectedExpert.createdAt)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Updated:</span>
-                      <span className="dark:text-white">{selectedExpert.updatedAt ? formatDate(selectedExpert.updatedAt) : "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Updated:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.updatedAt
+                          ? formatDate(selectedExpert.updatedAt)
+                          : "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -682,8 +760,12 @@ const Expert: React.FC = () => {
                   </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 dark:text-gray-400">Sport:</span>
-                      <span className="dark:text-white">{selectedExpert.sport || "-"}</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Sport:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.sport || "-"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -702,20 +784,25 @@ const Expert: React.FC = () => {
               )}
 
               {/* Languages */}
-              {selectedExpert.language && selectedExpert.language.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Languages
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedExpert.language.map((lang, idx) => (
-                      <Badge key={idx} variant="outline" className="dark:border-gray-500">
-                        {lang.trim()}
-                      </Badge>
-                    ))}
+              {selectedExpert.language &&
+                selectedExpert.language.length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Languages
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedExpert.language.map((lang, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="dark:border-gray-500"
+                        >
+                          {lang.trim()}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Social Links */}
               {selectedExpert.socialLinks && (
@@ -727,7 +814,9 @@ const Expert: React.FC = () => {
                     {selectedExpert.socialLinks.instagram && (
                       <a
                         href={
-                          selectedExpert.socialLinks.instagram.startsWith("http")
+                          selectedExpert.socialLinks.instagram.startsWith(
+                            "http",
+                          )
                             ? selectedExpert.socialLinks.instagram
                             : `https://instagram.com/${selectedExpert.socialLinks.instagram}`
                         }
@@ -736,7 +825,9 @@ const Expert: React.FC = () => {
                         className="flex items-center gap-2 text-pink-600 hover:text-pink-700"
                       >
                         <Instagram className="w-5 h-5" />
-                        <span className="text-sm">{selectedExpert.socialLinks.instagram}</span>
+                        <span className="text-sm">
+                          {selectedExpert.socialLinks.instagram}
+                        </span>
                       </a>
                     )}
                     {selectedExpert.socialLinks.facebook && (
@@ -751,7 +842,9 @@ const Expert: React.FC = () => {
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
                       >
                         <Facebook className="w-5 h-5" />
-                        <span className="text-sm">{selectedExpert.socialLinks.facebook}</span>
+                        <span className="text-sm">
+                          {selectedExpert.socialLinks.facebook}
+                        </span>
                       </a>
                     )}
                     {selectedExpert.socialLinks.twitter && (
@@ -766,7 +859,9 @@ const Expert: React.FC = () => {
                         className="flex items-center gap-2 text-sky-500 hover:text-sky-600"
                       >
                         <Twitter className="w-5 h-5" />
-                        <span className="text-sm">{selectedExpert.socialLinks.twitter}</span>
+                        <span className="text-sm">
+                          {selectedExpert.socialLinks.twitter}
+                        </span>
                       </a>
                     )}
                     {selectedExpert.socialLinks.linkedin && (
@@ -781,7 +876,9 @@ const Expert: React.FC = () => {
                         className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
                       >
                         <Linkedin className="w-5 h-5" />
-                        <span className="text-sm">{selectedExpert.socialLinks.linkedin}</span>
+                        <span className="text-sm">
+                          {selectedExpert.socialLinks.linkedin}
+                        </span>
                       </a>
                     )}
                     {!selectedExpert.socialLinks.instagram &&
@@ -803,21 +900,28 @@ const Expert: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referral Code:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referral Code:
+                    </span>
                     <p className="font-mono font-semibold dark:text-white">
                       {selectedExpert.referralCode || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referred By:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referred By:
+                    </span>
                     <p className="font-mono dark:text-white">
                       {selectedExpert.referredBy || "-"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Referrals (Free/Paid):</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Referrals (Free/Paid):
+                    </span>
                     <p className="dark:text-white">
-                      {selectedExpert.referredFree?.length || 0} / {selectedExpert.referredPaid?.length || 0}
+                      {selectedExpert.referredFree?.length || 0} /{" "}
+                      {selectedExpert.referredPaid?.length || 0}
                     </p>
                   </div>
                 </div>
