@@ -24,6 +24,31 @@ import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
 
+interface UserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  sport?: string;
+  city?: string;
+  country?: string;
+}
+
+interface SponsorInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  company?: string;
+  sponsorType?: string;
+}
+
 // Interface based on actual API response
 interface AwardedSponsorship {
   id: string;
@@ -38,6 +63,8 @@ interface AwardedSponsorship {
   additionalInfo: string;
   createdAt: string;
   updatedAt: string;
+  user?: UserInfo;
+  sponsor?: SponsorInfo;
 }
 
 const months = [
@@ -272,14 +299,6 @@ const SponsorshipOfferedTable: React.FC = () => {
   }, []);
 
   // Helper functions
-  const getSponsorDisplayName = (sponsorship: AwardedSponsorship) => {
-    return `Sponsor ${sponsorship.sponsorId.substring(0, 8)}...`;
-  };
-
-  const getUserDisplayName = (sponsorship: AwardedSponsorship) => {
-    return `User ${sponsorship.userId.substring(0, 8)}...`;
-  };
-
   const getSponsorshipType = (sponsorship: AwardedSponsorship) => {
     return sponsorship.sponsorshipType || "Not specified";
   };
@@ -410,10 +429,10 @@ const SponsorshipOfferedTable: React.FC = () => {
               <TableRow>
                 <TableHead className="w-10 text-center"></TableHead>
                 <TableHead className="min-w-[150px] text-left">
-                  User ID
+                  Player
                 </TableHead>
                 <TableHead className="min-w-[150px] text-left">
-                  Sponsor ID
+                  Sponsor
                 </TableHead>
                 <TableHead className="min-w-[120px] text-center">
                   Type
@@ -461,10 +480,13 @@ const SponsorshipOfferedTable: React.FC = () => {
                         className="font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        User
+                        {sponsorship.user
+                          ? `${sponsorship.user.firstName} ${sponsorship.user.lastName}`
+                          : "Player"}
                       </Link>
-                      <div className="text-xs text-gray-500 mt-1 font-mono">
-                        {sponsorship.userId?.substring(0, 8)}...
+                      <div className="text-xs text-gray-500 mt-1">
+                        {sponsorship.user?.username ||
+                          sponsorship.userId?.substring(0, 8) + "..."}
                       </div>
                     </TableCell>
 
@@ -474,10 +496,13 @@ const SponsorshipOfferedTable: React.FC = () => {
                         className="font-medium text-blue-600 underline hover:text-blue-800 dark:text-blue-400"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Sponsor
+                        {sponsorship.sponsor?.company ||
+                          `${sponsorship.sponsor?.firstName || ""} ${sponsorship.sponsor?.lastName || ""}`.trim() ||
+                          "Sponsor"}
                       </Link>
-                      <div className="text-xs text-gray-500 mt-1 font-mono">
-                        {sponsorship.sponsorId?.substring(0, 8)}...
+                      <div className="text-xs text-gray-500 mt-1">
+                        {sponsorship.sponsor?.username ||
+                          sponsorship.sponsorId?.substring(0, 8) + "..."}
                       </div>
                     </TableCell>
 
@@ -562,7 +587,7 @@ const SponsorshipOfferedTable: React.FC = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-6">
               {/* Status Badge */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -571,112 +596,211 @@ const SponsorshipOfferedTable: React.FC = () => {
                 {getStatusBadge(selectedSponsorship.status)}
               </div>
 
-              {/* Two Column Layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Application ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedSponsorship.id}
-                  </p>
+              {/* Player Information Section */}
+              {selectedSponsorship.user && (
+                <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                  <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">
+                    Player Information
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Name
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.user.firstName}{" "}
+                        {selectedSponsorship.user.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Username
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.user.username}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Email
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.user.email}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Sport
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.user.sport || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Location
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {[
+                          selectedSponsorship.user.city,
+                          selectedSponsorship.user.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Role
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white capitalize">
+                        {selectedSponsorship.user.role}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sponsor Information Section */}
+              {selectedSponsorship.sponsor && (
+                <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-900/20">
+                  <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                    Sponsor Information
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Company
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.sponsor.company || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Contact Name
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.sponsor.firstName}{" "}
+                        {selectedSponsorship.sponsor.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Username
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.sponsor.username}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Email
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedSponsorship.sponsor.email}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Sponsor Type
+                      </label>
+                      <p className="text-sm text-gray-900 dark:text-white capitalize">
+                        {selectedSponsorship.sponsor.sponsorType || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Application Details Section */}
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                  Sponsorship Details
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Application ID
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                      {selectedSponsorship.id}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Sponsorship Type
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white capitalize">
+                      {selectedSponsorship.sponsorshipType}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Budget
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                      {getSponsorshipBudget(selectedSponsorship)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Website
+                    </label>
+                    <a
+                      href={selectedSponsorship.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline break-all block"
+                    >
+                      {selectedSponsorship.website || "N/A"}
+                    </a>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Created At
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {formatDate(selectedSponsorship.createdAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Updated At
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {formatDate(selectedSponsorship.updatedAt)}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Sponsorship Type
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white capitalize">
-                    {selectedSponsorship.sponsorshipType}
-                  </p>
+                {/* Full Width Fields */}
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Reason
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedSponsorship.reason || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Unique Factor
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedSponsorship.uniqueFactor || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Additional Info
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedSponsorship.additionalInfo || "N/A"}
+                    </p>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    User ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedSponsorship.userId}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Sponsor ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedSponsorship.sponsorId}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Budget
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-semibold">
-                    {getSponsorshipBudget(selectedSponsorship)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Website
-                  </label>
-                  <a
-                    href={selectedSponsorship.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
-                  >
-                    {selectedSponsorship.website}
-                  </a>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Created At
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {formatDate(selectedSponsorship.createdAt)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Updated At
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {formatDate(selectedSponsorship.updatedAt)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Full Width Fields */}
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Reason
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedSponsorship.reason}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Unique Factor
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedSponsorship.uniqueFactor}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Additional Info
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedSponsorship.additionalInfo || "N/A"}
-                </p>
               </div>
             </div>
 

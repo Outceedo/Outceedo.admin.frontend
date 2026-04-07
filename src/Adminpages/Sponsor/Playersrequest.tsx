@@ -154,7 +154,8 @@ const Playersrequest: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedApplication, setSelectedApplication] = useState<SponsorApplication | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<SponsorApplication | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleRowClick = (app: SponsorApplication) => {
@@ -177,7 +178,7 @@ const Playersrequest: React.FC = () => {
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
   const paginatedApplications = filteredApplications.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const months = [
@@ -230,7 +231,7 @@ const Playersrequest: React.FC = () => {
             "api-key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data && response.data.data) {
@@ -254,7 +255,7 @@ const Playersrequest: React.FC = () => {
       } else {
         setError(
           error.response?.data?.message ||
-            "Failed to fetch sponsor applications"
+            "Failed to fetch sponsor applications",
         );
       }
     } finally {
@@ -283,7 +284,7 @@ const Playersrequest: React.FC = () => {
     // Filter by status
     if (selectedStatus && selectedStatus !== "All Status") {
       filtered = filtered.filter(
-        (app) => app.status.toUpperCase() === selectedStatus.toUpperCase()
+        (app) => app.status.toUpperCase() === selectedStatus.toUpperCase(),
       );
     }
 
@@ -440,9 +441,7 @@ const Playersrequest: React.FC = () => {
                 <TableHead className="min-w-[180px] text-left">
                   Sponsor
                 </TableHead>
-                <TableHead className="min-w-[180px] text-left">
-                  User
-                </TableHead>
+                <TableHead className="min-w-[180px] text-left">User</TableHead>
                 <TableHead className="min-w-[130px] text-center">
                   Request Date
                 </TableHead>
@@ -490,11 +489,14 @@ const Playersrequest: React.FC = () => {
                             to={`/sponsor-profile/${app.sponsorId}`}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {app.sponsor?.company || `${app.sponsor?.firstName || ""} ${app.sponsor?.lastName || ""}`.trim() || "Sponsor"}
+                            {app.sponsor?.company ||
+                              `${app.sponsor?.firstName || ""} ${app.sponsor?.lastName || ""}`.trim() ||
+                              "Sponsor"}
                           </Link>
                         </div>
                         <div className="text-xs text-gray-500">
-                          {app.sponsor?.username || app.sponsorId?.substring(0, 12) + "..."}
+                          {app.sponsor?.username ||
+                            app.sponsorId?.substring(0, 12) + "..."}
                         </div>
                       </div>
                     </TableCell>
@@ -506,11 +508,14 @@ const Playersrequest: React.FC = () => {
                             to={`/player-profile/${app.userId}`}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {app.user ? `${app.user.firstName} ${app.user.lastName}` : "Player"}
+                            {app.user
+                              ? `${app.user.firstName} ${app.user.lastName}`
+                              : "Player"}
                           </Link>
                         </div>
                         <div className="text-xs text-gray-500">
-                          {app.user?.username || app.userId?.substring(0, 12) + "..."}
+                          {app.user?.username ||
+                            app.userId?.substring(0, 12) + "..."}
                         </div>
                       </div>
                     </TableCell>
@@ -615,37 +620,55 @@ const Playersrequest: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Name</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Name
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
-                          {selectedApplication.user.firstName} {selectedApplication.user.lastName}
+                          {selectedApplication.user.firstName}{" "}
+                          {selectedApplication.user.lastName}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Username
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.user.username}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Email
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.user.email}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sport</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Sport
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.user.sport || "N/A"}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Location
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
-                          {[selectedApplication.user.city, selectedApplication.user.country].filter(Boolean).join(", ") || "N/A"}
+                          {[
+                            selectedApplication.user.city,
+                            selectedApplication.user.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ") || "N/A"}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Role</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Role
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white capitalize">
                           {selectedApplication.user.role}
                         </p>
@@ -662,31 +685,42 @@ const Playersrequest: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Company</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Company
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.sponsor.company || "N/A"}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Contact Name</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Contact Name
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
-                          {selectedApplication.sponsor.firstName} {selectedApplication.sponsor.lastName}
+                          {selectedApplication.sponsor.firstName}{" "}
+                          {selectedApplication.sponsor.lastName}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Username
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.sponsor.username}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Email
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white">
                           {selectedApplication.sponsor.email}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsor Type</label>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Sponsor Type
+                        </label>
                         <p className="text-sm text-gray-900 dark:text-white capitalize">
                           {selectedApplication.sponsor.sponsorType || "N/A"}
                         </p>
@@ -702,25 +736,33 @@ const Playersrequest: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Application ID
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
                         {selectedApplication.id}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsorship Type</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Sponsorship Type
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white capitalize">
                         {selectedApplication.sponsorshipType}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Budget</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Budget
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white font-semibold">
                         {formatAmount(selectedApplication.budget)}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Website</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Website
+                      </label>
                       <a
                         href={selectedApplication.website}
                         target="_blank"
@@ -731,13 +773,17 @@ const Playersrequest: React.FC = () => {
                       </a>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Created At</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Created At
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white">
                         {formatDate(selectedApplication.createdAt)}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Updated At</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Updated At
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white">
                         {formatDate(selectedApplication.updatedAt)}
                       </p>
@@ -747,19 +793,25 @@ const Playersrequest: React.FC = () => {
                   {/* Full Width Fields */}
                   <div className="mt-4 space-y-3">
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Reason</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Reason
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
                         {selectedApplication.reason || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Unique Factor</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Unique Factor
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
                         {selectedApplication.uniqueFactor || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Additional Info</label>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Additional Info
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
                         {selectedApplication.additionalInfo || "N/A"}
                       </p>
