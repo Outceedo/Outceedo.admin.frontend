@@ -30,6 +30,8 @@ interface ExpertBooking {
   timezone: string;
   createdAt: string;
   updatedAt: string;
+  playerName: string;
+  expertName: string;
   // Optional fields from your API response
   agora?: any | null;
   description?: string | null;
@@ -269,6 +271,9 @@ const ExpertBooking: React.FC = () => {
   };
 
   const getExpertDisplayName = (booking: ExpertBooking) => {
+    if (booking.expertName) {
+      return booking.expertName;
+    }
     if (booking.expert) {
       const fullName = `${booking.expert.firstName || ""} ${
         booking.expert.lastName || ""
@@ -284,6 +289,9 @@ const ExpertBooking: React.FC = () => {
   };
 
   const getPlayerDisplayName = (booking: ExpertBooking) => {
+    if (booking.playerName) {
+      return booking.playerName;
+    }
     if (booking.player) {
       const fullName = `${booking.player.firstName || ""} ${
         booking.player.lastName || ""

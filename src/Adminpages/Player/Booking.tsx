@@ -38,6 +38,8 @@ type BookingType = {
   status: string;
   price: number;
   timezone: string;
+  playerName: string;
+  expertName: string;
   description?: string | null;
   location?: string | null;
   meetLink?: string | null;
@@ -255,8 +257,8 @@ const Booking = () => {
             <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead className="min-w-[150px]">Player ID</TableHead>
-                <TableHead className="min-w-[150px]">Expert ID</TableHead>
+                <TableHead className="min-w-[150px]">Player Name</TableHead>
+                <TableHead className="min-w-[150px]">Expert Name</TableHead>
                 <TableHead className="min-w-[180px]">Booking Details</TableHead>
                 <TableHead className="min-w-[120px]">Schedule</TableHead>
                 <TableHead className="min-w-[100px]">Price</TableHead>
@@ -293,7 +295,7 @@ const Booking = () => {
                         to={`/player-profile/${booking.playerId}`}
                         className="text-blue-600 hover:text-blue-800 underline font-medium"
                       >
-                        Player
+                        {booking.playerName || "Player"}
                       </Link>
                       <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                         {booking.playerId.substring(0, 8)}...
@@ -305,7 +307,7 @@ const Booking = () => {
                         to={`/expert-profile/${booking.expertId}`}
                         className="text-blue-600 hover:text-blue-800 underline font-medium"
                       >
-                        Expert
+                        {booking.expertName || "Expert"}
                       </Link>
                       <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                         {booking.expertId.substring(0, 8)}...
