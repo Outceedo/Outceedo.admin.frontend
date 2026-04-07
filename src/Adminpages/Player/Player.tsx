@@ -137,7 +137,7 @@ const Player: React.FC = () => {
       }
 
       const response = await axios.get(
-        `https://api.outceedo.com/user/profiles/search`,
+        `${import.meta.env.VITE_PORT || "http://localhost:3000"}/profile/search`,
         {
           params: {
             q: query,
