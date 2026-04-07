@@ -137,7 +137,7 @@ const Player: React.FC = () => {
       }
 
       const response = await axios.get(
-        `https://api.outceedo.com/users/profiles/search`,
+        `https://api.outceedo.com/user/profiles/search`,
         {
           params: {
             q: query,
