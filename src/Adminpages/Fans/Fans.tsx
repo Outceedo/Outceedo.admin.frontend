@@ -140,7 +140,7 @@ const Fanandfollowers = () => {
           },
           headers: {
             Authorization: `Bearer ${token}`,
-            "API-Key": token,
+            "api-key": token,
             "Content-Type": "application/json",
           },
         },
@@ -177,7 +177,7 @@ const Fanandfollowers = () => {
           },
           headers: {
             Authorization: `Bearer ${token}`,
-            "API-Key": token,
+            "api-key": token,
             "Content-Type": "application/json",
           },
         },
