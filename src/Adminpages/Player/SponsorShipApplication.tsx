@@ -15,6 +15,31 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 
+interface UserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  sport?: string;
+  city?: string;
+  country?: string;
+}
+
+interface SponsorInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  company?: string;
+  sponsorType?: string;
+}
+
 interface SponsorApplication {
   id: string;
   sponsorId: string;
@@ -28,6 +53,8 @@ interface SponsorApplication {
   additionalInfo: string;
   createdAt: string;
   updatedAt: string;
+  user?: UserInfo;
+  sponsor?: SponsorInfo;
 }
 
 const SponsorShipApplication: React.FC = () => {
@@ -189,8 +216,8 @@ const SponsorShipApplication: React.FC = () => {
           <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
             <TableRow>
               <TableHead></TableHead>
-              <TableHead>User ID</TableHead>
-              <TableHead>Sponsor ID</TableHead>
+              <TableHead>Player</TableHead>
+              <TableHead>Sponsor</TableHead>
               <TableHead>Application Date</TableHead>
               <TableHead>Sponsorship Type</TableHead>
               <TableHead>Budget</TableHead>
@@ -222,31 +249,31 @@ const SponsorShipApplication: React.FC = () => {
                     <Checkbox />
                   </TableCell>
 
-                  {/* User ID */}
+                  {/* Player */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <Link
                       to={`/player-profile/${app.userId}`}
                       className="font-medium text-xs sm:text-sm md:text-base text-blue-600 underline hover:opacity-80"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      User
+                      {app.user ? `${app.user.firstName} ${app.user.lastName}` : "Player"}
                     </Link>
-                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono">
-                      {app.userId?.substring(0, 8) ?? "N/A"}...
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                      {app.user?.username || app.userId?.substring(0, 8) + "..."}
                     </div>
                   </TableCell>
 
-                  {/* Sponsor ID */}
+                  {/* Sponsor */}
                   <TableCell className="px-2 sm:px-4 py-2 align-middle">
                     <Link
                       to={`/sponsor-profile/${app.sponsorId}`}
                       className="font-medium text-xs sm:text-sm md:text-base text-blue-600 underline hover:opacity-80"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Sponsor
+                      {app.sponsor?.company || `${app.sponsor?.firstName || ""} ${app.sponsor?.lastName || ""}`.trim() || "Sponsor"}
                     </Link>
-                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono">
-                      {app.sponsorId?.substring(0, 8) ?? "N/A"}...
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                      {app.sponsor?.username || app.sponsorId?.substring(0, 8) + "..."}
                     </div>
                   </TableCell>
 
@@ -399,7 +426,7 @@ const SponsorShipApplication: React.FC = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-6">
               {/* Status Badge */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -410,112 +437,164 @@ const SponsorShipApplication: React.FC = () => {
                 </Badge>
               </div>
 
-              {/* Two Column Layout */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Application ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedApplication.id}
-                  </p>
+              {/* Player Information Section */}
+              {selectedApplication.user && (
+                <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                  <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">
+                    Player Information
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Name</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.user.firstName} {selectedApplication.user.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.user.username}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.user.email}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sport</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.user.sport || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {[selectedApplication.user.city, selectedApplication.user.country].filter(Boolean).join(", ") || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Role</label>
+                      <p className="text-sm text-gray-900 dark:text-white capitalize">
+                        {selectedApplication.user.role}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sponsor Information Section */}
+              {selectedApplication.sponsor && (
+                <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-900/20">
+                  <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                    Sponsor Information
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Company</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.sponsor.company || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Contact Name</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.sponsor.firstName} {selectedApplication.sponsor.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.sponsor.username}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedApplication.sponsor.email}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsor Type</label>
+                      <p className="text-sm text-gray-900 dark:text-white capitalize">
+                        {selectedApplication.sponsor.sponsorType || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Application Details Section */}
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                  Application Details
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+                    <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                      {selectedApplication.id}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsorship Type</label>
+                    <p className="text-sm text-gray-900 dark:text-white capitalize">
+                      {selectedApplication.sponsorshipType}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Budget</label>
+                    <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                      {formatAmount(selectedApplication.budget)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Website</label>
+                    <a
+                      href={selectedApplication.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-600 hover:underline break-all block"
+                    >
+                      {selectedApplication.website || "N/A"}
+                    </a>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Created At</label>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {formatDate(selectedApplication.createdAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Updated At</label>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {formatDate(selectedApplication.updatedAt)}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Sponsorship Type
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white capitalize">
-                    {selectedApplication.sponsorshipType}
-                  </p>
+                {/* Full Width Fields */}
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Reason</label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedApplication.reason || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Unique Factor</label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedApplication.uniqueFactor || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Additional Info</label>
+                    <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                      {selectedApplication.additionalInfo || "N/A"}
+                    </p>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    User ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedApplication.userId}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Sponsor ID
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
-                    {selectedApplication.sponsorId}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Budget
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-semibold">
-                    {formatAmount(selectedApplication.budget)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Website
-                  </label>
-                  <a
-                    href={selectedApplication.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
-                  >
-                    {selectedApplication.website}
-                  </a>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Created At
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {formatDate(selectedApplication.createdAt)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Updated At
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {formatDate(selectedApplication.updatedAt)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Full Width Fields */}
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Reason
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedApplication.reason}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Unique Factor
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedApplication.uniqueFactor}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Additional Info
-                </label>
-                <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-                  {selectedApplication.additionalInfo || "N/A"}
-                </p>
               </div>
             </div>
 

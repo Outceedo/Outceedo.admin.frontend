@@ -81,7 +81,7 @@ const ExpertBooking: React.FC = () => {
   const totalPages = Math.ceil(filteredBookings.length / pageSize);
   const paginatedBookings = filteredBookings.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   const statusOptions = [
@@ -138,7 +138,7 @@ const ExpertBooking: React.FC = () => {
             "api-key": token,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data) {
@@ -170,7 +170,7 @@ const ExpertBooking: React.FC = () => {
         setError("Server error. Please try again later.");
       } else {
         setError(
-          error.response?.data?.message || "Failed to fetch expert bookings"
+          error.response?.data?.message || "Failed to fetch expert bookings",
         );
       }
     } finally {
@@ -218,7 +218,7 @@ const ExpertBooking: React.FC = () => {
     if (selectedStatus && selectedStatus !== "All Status") {
       filtered = filtered.filter(
         (booking) =>
-          booking.status.toUpperCase() === selectedStatus.toUpperCase()
+          booking.status.toUpperCase() === selectedStatus.toUpperCase(),
       );
     }
 
@@ -227,7 +227,7 @@ const ExpertBooking: React.FC = () => {
       filtered = filtered.filter((booking) => {
         const bookingMonth = new Date(booking.startAt).toLocaleDateString(
           "en-US",
-          { month: "long" }
+          { month: "long" },
         );
         return bookingMonth === selectedMonth;
       });
@@ -593,7 +593,7 @@ const ExpertBooking: React.FC = () => {
             Showing{" "}
             {Math.min(
               (currentPage - 1) * pageSize + 1,
-              filteredBookings.length
+              filteredBookings.length,
             )}
             –{Math.min(currentPage * pageSize, filteredBookings.length)} of{" "}
             {filteredBookings.length}

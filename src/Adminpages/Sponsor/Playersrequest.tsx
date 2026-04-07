@@ -16,12 +16,38 @@ import {
   MoreVertical,
   Search,
   Loader2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from "axios";
+
+interface UserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  sport?: string;
+  city?: string;
+  country?: string;
+}
+
+interface SponsorInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  photo: string | null;
+  email: string;
+  role: string;
+  company?: string;
+  sponsorType?: string;
+}
 
 // Interface based on actual API response
 interface SponsorApplication {
@@ -37,6 +63,8 @@ interface SponsorApplication {
   additionalInfo: string;
   createdAt: string;
   updatedAt: string;
+  user?: UserInfo;
+  sponsor?: SponsorInfo;
 }
 
 // Pagination Bar Component
@@ -126,6 +154,24 @@ const Playersrequest: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedApplication, setSelectedApplication] = useState<SponsorApplication | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleRowClick = (app: SponsorApplication) => {
+    setSelectedApplication(app);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedApplication(null);
+  };
+
+  const formatAmount = (amount: string | null) => {
+    if (!amount) return "N/A";
+    if (amount.includes("£") || amount.includes("$")) return amount;
+    return `£${amount}`;
+  };
 
   const itemsPerPage = 7;
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
@@ -271,22 +317,6 @@ const Playersrequest: React.FC = () => {
     } catch {
       return "Invalid Date";
     }
-  };
-
-  const getSponsorDisplayName = (application: SponsorApplication) => {
-    return `Sponsor ${application.sponsorId?.substring(0, 8) || "N/A"}...`;
-  };
-
-  const getUserDisplayName = (application: SponsorApplication) => {
-    return `User ${application.userId?.substring(0, 8) || "N/A"}...`;
-  };
-
-  const getSponsorInfo = (application: SponsorApplication) => {
-    return application.sponsorId?.substring(0, 12) + "..." || "N/A";
-  };
-
-  const getUserInfo = (application: SponsorApplication) => {
-    return application.userId?.substring(0, 12) + "..." || "N/A";
   };
 
   const getBudget = (application: SponsorApplication) => {
@@ -441,20 +471,30 @@ const Playersrequest: React.FC = () => {
                 </TableRow>
               ) : (
                 paginatedApplications.map((app) => (
-                  <TableRow key={app.id}>
-                    <TableCell className="text-center align-middle">
+                  <TableRow
+                    key={app.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={() => handleRowClick(app)}
+                  >
+                    <TableCell
+                      className="text-center align-middle"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox />
                     </TableCell>
 
                     <TableCell className="align-middle">
                       <div>
                         <div className="font-medium text-blue-600 underline">
-                          <Link to={`/sponsor-profile/${app.sponsorId}`}>
-                            {getSponsorDisplayName(app)}
+                          <Link
+                            to={`/sponsor-profile/${app.sponsorId}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {app.sponsor?.company || `${app.sponsor?.firstName || ""} ${app.sponsor?.lastName || ""}`.trim() || "Sponsor"}
                           </Link>
                         </div>
-                        <div className="text-xs text-gray-500 font-mono">
-                          {getSponsorInfo(app)}
+                        <div className="text-xs text-gray-500">
+                          {app.sponsor?.username || app.sponsorId?.substring(0, 12) + "..."}
                         </div>
                       </div>
                     </TableCell>
@@ -462,12 +502,15 @@ const Playersrequest: React.FC = () => {
                     <TableCell className="align-middle">
                       <div>
                         <div className="font-medium text-blue-600 underline">
-                          <Link to={`/player-profile/${app.userId}`}>
-                            {getUserDisplayName(app)}
+                          <Link
+                            to={`/player-profile/${app.userId}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {app.user ? `${app.user.firstName} ${app.user.lastName}` : "Player"}
                           </Link>
                         </div>
-                        <div className="text-xs text-gray-500 font-mono">
-                          {getUserInfo(app)}
+                        <div className="text-xs text-gray-500">
+                          {app.user?.username || app.userId?.substring(0, 12) + "..."}
                         </div>
                       </div>
                     </TableCell>
@@ -489,7 +532,10 @@ const Playersrequest: React.FC = () => {
                       {getStatusBadge(app.status)}
                     </TableCell>
 
-                    <TableCell className="text-center align-middle">
+                    <TableCell
+                      className="text-center align-middle"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex gap-1 sm:gap-2 justify-center">
                         <Button size="icon" variant="ghost" title="Delete">
                           <Trash2 className="w-4 h-4 text-red-500" />
@@ -497,7 +543,12 @@ const Playersrequest: React.FC = () => {
                         <Button size="icon" variant="ghost" title="Edit">
                           <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
                         </Button>
-                        <Button size="icon" variant="ghost" title="View">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="View"
+                          onClick={() => handleRowClick(app)}
+                        >
                           <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
                         </Button>
                         <Button size="icon" variant="ghost" title="More">
@@ -521,6 +572,210 @@ const Playersrequest: React.FC = () => {
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
           />
+        )}
+
+        {/* Application Details Modal */}
+        {isModalOpen && selectedApplication && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Application Details
+                </h3>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 space-y-6">
+                {/* Status Badge */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Status:
+                  </span>
+                  {getStatusBadge(selectedApplication.status)}
+                </div>
+
+                {/* Player Information Section */}
+                {selectedApplication.user && (
+                  <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                    <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-3">
+                      Player Information
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Name</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.user.firstName} {selectedApplication.user.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.user.username}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.user.email}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sport</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.user.sport || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {[selectedApplication.user.city, selectedApplication.user.country].filter(Boolean).join(", ") || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Role</label>
+                        <p className="text-sm text-gray-900 dark:text-white capitalize">
+                          {selectedApplication.user.role}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sponsor Information Section */}
+                {selectedApplication.sponsor && (
+                  <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-900/20">
+                    <h4 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                      Sponsor Information
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Company</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.sponsor.company || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Contact Name</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.sponsor.firstName} {selectedApplication.sponsor.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Username</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.sponsor.username}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email</label>
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          {selectedApplication.sponsor.email}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsor Type</label>
+                        <p className="text-sm text-gray-900 dark:text-white capitalize">
+                          {selectedApplication.sponsor.sponsorType || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Application Details Section */}
+                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                  <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Application Details
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Application ID</label>
+                      <p className="text-sm text-gray-900 dark:text-white font-mono break-all">
+                        {selectedApplication.id}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Sponsorship Type</label>
+                      <p className="text-sm text-gray-900 dark:text-white capitalize">
+                        {selectedApplication.sponsorshipType}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Budget</label>
+                      <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                        {formatAmount(selectedApplication.budget)}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Website</label>
+                      <a
+                        href={selectedApplication.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline break-all block"
+                      >
+                        {selectedApplication.website || "N/A"}
+                      </a>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Created At</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {formatDate(selectedApplication.createdAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Updated At</label>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {formatDate(selectedApplication.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Full Width Fields */}
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Reason</label>
+                      <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                        {selectedApplication.reason || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Unique Factor</label>
+                      <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                        {selectedApplication.uniqueFactor || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Additional Info</label>
+                      <p className="text-sm text-gray-900 dark:text-white mt-1 p-3 bg-white dark:bg-gray-800 rounded border">
+                        {selectedApplication.additionalInfo || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
+                <Button variant="outline" onClick={closeModal}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
