@@ -7,250 +7,995 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Eye, MoreVertical } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Search,
+  Briefcase,
+  X,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import axios from "axios";
 
+interface PlatformService {
+  id: string;
+  name: string;
+  description: string;
+}
 
-const expertservice = [
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "1-on-1 Online Training or advice",
-    amount: 198.0,
-    date:"1 may 2020",
-    status: "Completed",
-    report: true,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "Online Video Assessment",
-    amount: 674.0,
-     date:"1 may 2020",
-    status: "Completed",
-    report: false,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "On-Field Live Assessment",
-    amount: 393.0,
-     date:"1 may 2020",
-    status: "Completed",
-    report: true,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "1-on-1 Online Training or advice",
-    amount: 731.0,
-     date:"1 may 2020",
-    status: "Pending",
-    report: false,
-  },
-  {
-  
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "Online Video Assessment",
-    amount: 197.0,
-     date:"1 may 2020",
-    status: "Pending",
-    report: true,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "1-on-1 Online Training or advice",
-    amount: 970.0,
-     date:"1 may 2020",
-    status: "Completed",
-    report: true,
-  },
-  {
-  
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "On-Field Live Assessment",
-    amount: 448.0,
-     date:"1 may 2020",
-    status: "Pending",
-    report: false,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "Online Video Assessment",
-    amount: 764.0,
-     date:"1 may 2020",
-    status: "Completed",
-    report: true,
-  },
-  {
-    
-    player: "Player Name",
-    expert: "Expert Name",
-    service: "On-Field Live Assessment",
-    amount: 385.0,
-     date:"1 may 2020",
-    status: "Pending",
-    report: true,
-  },
-];
+interface ExpertService {
+  id: string;
+  serviceId: string;
+  price: number;
+  additionalDetails?: Record<string, any>;
+  service?: PlatformService;
+}
+
+interface Expert {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: string;
+  status?: string;
+}
+
+interface ExpertWithServices extends Expert {
+  services: ExpertService[];
+  servicesCount: number;
+}
+
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 const ExpertServices: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-
-  const totalPages = Math.ceil(expertservice.length / pageSize);
-  const paginatedService = expertservice.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+  const [experts, setExperts] = useState<ExpertWithServices[]>([]);
+  const [filteredExperts, setFilteredExperts] = useState<ExpertWithServices[]>(
+    []
   );
-  const [months, setMonths] = useState<string[]>([]);
-   useEffect(() => {
-    const monthList = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    setTimeout(() => {
-      setMonths(monthList);
-    }, 500);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Expanded row state
+  const [expandedExpertId, setExpandedExpertId] = useState<string | null>(null);
+  const [loadingServices, setLoadingServices] = useState<string | null>(null);
+
+  // Platform services for add service dropdown
+  const [platformServices, setPlatformServices] = useState<PlatformService[]>(
+    []
+  );
+
+  // Add/Edit service state
+  const [showAddService, setShowAddService] = useState<string | null>(null);
+  const [serviceAdding, setServiceAdding] = useState(false);
+  const [newService, setNewService] = useState({
+    serviceId: "",
+    price: "",
+    description: "",
+  });
+
+  // Edit service state
+  const [editingService, setEditingService] = useState<{
+    expertId: string;
+    service: ExpertService;
+  } | null>(null);
+  const [editServiceData, setEditServiceData] = useState({
+    price: "",
+    description: "",
+  });
+  const [serviceUpdating, setServiceUpdating] = useState(false);
+
+  const pageSize = 10;
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+
+  // Fetch all experts
+  const fetchExperts = async (page: number = 1) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const adminToken = localStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(`${import.meta.env.VITE_PORT}/expert/`, {
+        params: {
+          page: page,
+          limit: pageSize,
+        },
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          "api-key": adminToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data && response.data.data) {
+        // Fetch services count for each expert
+        const expertsWithServices = await Promise.all(
+          response.data.data.map(async (expert: Expert) => {
+            try {
+              const servicesResponse = await axios.get(
+                `${import.meta.env.VITE_PORT}/profile/${expert.id}/services`,
+                {
+                  headers: {
+                    "Api-Key": adminToken,
+                  },
+                }
+              );
+              return {
+                ...expert,
+                services: servicesResponse.data || [],
+                servicesCount: servicesResponse.data?.length || 0,
+              };
+            } catch {
+              return {
+                ...expert,
+                services: [],
+                servicesCount: 0,
+              };
+            }
+          })
+        );
+
+        setExperts(expertsWithServices);
+        setFilteredExperts(expertsWithServices);
+        setTotalPages(
+          response.data.totalPages ||
+            Math.ceil(
+              (response.data.total || response.data.data.length) / pageSize
+            )
+        );
+      } else {
+        setExperts([]);
+        setFilteredExperts([]);
+        setTotalPages(1);
+      }
+    } catch (err: any) {
+      console.error("Error fetching experts:", err);
+      if (err.response?.status === 401) {
+        setError("Authentication failed. Please login again.");
+      } else if (err.response?.status === 403) {
+        setError("Access denied. Admin privileges required.");
+      } else {
+        setError(err.response?.data?.message || "Failed to fetch experts data");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Search experts
+  const searchExperts = async (query: string, page: number) => {
+    try {
+      setIsSearching(true);
+      setError("");
+
+      const adminToken = localStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        setError("Authentication required. Please login again.");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT || "http://localhost:3000"}/profile/search`,
+        {
+          params: {
+            q: query,
+            page: page,
+            limit: pageSize,
+            role: "expert",
+          },
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            "api-key": adminToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        const searchResults = response.data.users || response.data.data || [];
+
+        // Fetch services count for each expert
+        const expertsWithServices = await Promise.all(
+          searchResults.map(async (expert: Expert) => {
+            try {
+              const servicesResponse = await axios.get(
+                `${import.meta.env.VITE_PORT}/profile/${expert.id}/services`,
+                {
+                  headers: {
+                    "Api-Key": adminToken,
+                  },
+                }
+              );
+              return {
+                ...expert,
+                services: servicesResponse.data || [],
+                servicesCount: servicesResponse.data?.length || 0,
+              };
+            } catch {
+              return {
+                ...expert,
+                services: [],
+                servicesCount: 0,
+              };
+            }
+          })
+        );
+
+        setExperts(expertsWithServices);
+        setFilteredExperts(expertsWithServices);
+        setTotalPages(response.data.totalPages || 1);
+      }
+    } catch (err: any) {
+      console.error("Error searching experts:", err);
+      setError(err.response?.data?.message || "Failed to search experts");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
+
+  // Fetch platform services
+  const fetchPlatformServices = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profile/services/all`,
+        {
+          headers: {
+            "Api-Key": token,
+          },
+        }
+      );
+
+      if (response.data) {
+        setPlatformServices(response.data);
+      }
+    } catch (err: any) {
+      console.error("Error fetching platform services:", err);
+    }
+  };
+
+  // Fetch services for a specific expert
+  const fetchExpertServices = async (expertId: string) => {
+    try {
+      setLoadingServices(expertId);
+      const token = localStorage.getItem("adminToken");
+      const response = await axios.get(
+        `${import.meta.env.VITE_PORT}/profile/${expertId}/services`,
+        {
+          headers: {
+            "Api-Key": token,
+          },
+        }
+      );
+
+      if (response.data) {
+        // Update the expert's services in state
+        setExperts((prev) =>
+          prev.map((expert) =>
+            expert.id === expertId
+              ? {
+                  ...expert,
+                  services: response.data,
+                  servicesCount: response.data.length,
+                }
+              : expert
+          )
+        );
+        setFilteredExperts((prev) =>
+          prev.map((expert) =>
+            expert.id === expertId
+              ? {
+                  ...expert,
+                  services: response.data,
+                  servicesCount: response.data.length,
+                }
+              : expert
+          )
+        );
+      }
+    } catch (err: any) {
+      console.error("Error fetching expert services:", err);
+    } finally {
+      setLoadingServices(null);
+    }
+  };
+
+  // Handle row click to expand/collapse
+  const handleRowClick = (expertId: string) => {
+    if (expandedExpertId === expertId) {
+      setExpandedExpertId(null);
+      setShowAddService(null);
+      setEditingService(null);
+    } else {
+      setExpandedExpertId(expertId);
+      setShowAddService(null);
+      setEditingService(null);
+      fetchExpertServices(expertId);
+    }
+  };
+
+  // Add service handler
+  const handleAddService = async (expertId: string) => {
+    if (!newService.serviceId || !newService.price) {
+      setError("Please select a service and enter a price");
+      return;
+    }
+
+    setServiceAdding(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      await axios.post(
+        `${import.meta.env.VITE_PORT}/profile/${expertId}/services/${newService.serviceId}`,
+        {
+          price: parseFloat(newService.price),
+          additionalDetails: newService.description
+            ? { description: newService.description }
+            : undefined,
+        },
+        {
+          headers: {
+            "Api-Key": token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setSuccess("Service added successfully!");
+      setShowAddService(null);
+      setNewService({ serviceId: "", price: "", description: "" });
+      fetchExpertServices(expertId);
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      console.error("Error adding service:", err);
+      setError(err.response?.data?.message || "Failed to add service");
+    } finally {
+      setServiceAdding(false);
+    }
+  };
+
+  // Delete service handler
+  const handleDeleteService = async (expertId: string, serviceId: string) => {
+    if (!confirm("Are you sure you want to remove this service?")) return;
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      await axios.delete(
+        `${import.meta.env.VITE_PORT}/profile/${expertId}/services/${serviceId}`,
+        {
+          headers: {
+            "Api-Key": token,
+          },
+        }
+      );
+
+      setSuccess("Service removed successfully!");
+      fetchExpertServices(expertId);
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      console.error("Error removing service:", err);
+      setError(err.response?.data?.message || "Failed to remove service");
+    }
+  };
+
+  // Start editing a service
+  const handleStartEditService = (expertId: string, service: ExpertService) => {
+    setEditingService({ expertId, service });
+    setEditServiceData({
+      price: service.price.toString(),
+      description: service.additionalDetails?.description || "",
+    });
+  };
+
+  // Update service handler
+  const handleUpdateService = async () => {
+    if (!editingService || !editServiceData.price) {
+      setError("Please enter a price");
+      return;
+    }
+
+    setServiceUpdating(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      // Delete and re-add with new price (since API might not have PATCH for service)
+      await axios.delete(
+        `${import.meta.env.VITE_PORT}/profile/${editingService.expertId}/services/${editingService.service.id}`,
+        {
+          headers: {
+            "Api-Key": token,
+          },
+        }
+      );
+
+      await axios.post(
+        `${import.meta.env.VITE_PORT}/profile/${editingService.expertId}/services/${editingService.service.serviceId}`,
+        {
+          price: parseFloat(editServiceData.price),
+          additionalDetails: editServiceData.description
+            ? { description: editServiceData.description }
+            : undefined,
+        },
+        {
+          headers: {
+            "Api-Key": token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setSuccess("Service updated successfully!");
+      setEditingService(null);
+      fetchExpertServices(editingService.expertId);
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      console.error("Error updating service:", err);
+      setError(err.response?.data?.message || "Failed to update service");
+    } finally {
+      setServiceUpdating(false);
+    }
+  };
+
+  // Get full name
+  const getFullName = (expert: Expert) => {
+    return (
+      `${expert.firstName || ""} ${expert.lastName || ""}`.trim() || "N/A"
+    );
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchExperts(1);
+    fetchPlatformServices();
   }, []);
 
-  return (
-   <div className="p-6">
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-     <h2 className="text-xl md:text-2xl font-semibold">Services Offered</h2>
-   
-     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
-       <div className="relative w-full sm:w-64 dark:bg-slate-600 dark:text-white rounded-lg">
-         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-         <Input
-           type="text"
-           placeholder="Search by name"
-           className="pl-9 w-full dark:bg-slate-700 text-sm sm:text-base"
-         />
-       </div>
-   
-       <select className="border px-3 py-2 rounded-md dark:bg-gray-900 w-full sm:w-auto">
-         {months.map((month, index) => (
-           <option key={index} value={month}>
-             {month}
-           </option>
-         ))}
-       </select>
-     </div>
-   </div>
+  // Handle debounced search
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      searchExperts(debouncedSearchTerm, 1);
+      setCurrentPage(1);
+    } else {
+      fetchExperts(currentPage);
+    }
+  }, [debouncedSearchTerm]);
 
-        <div className="rounded-lg shadow-sm border bg-white dark:bg-gray-800 dark:border-gray-700">
-        <Table className="min-w-[1000px]">
+  // Handle page changes
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      fetchExperts(currentPage);
+    }
+  }, [currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setExpandedExpertId(null);
+    if (debouncedSearchTerm.trim()) {
+      searchExperts(debouncedSearchTerm, page);
+    }
+  };
+
+  if (loading && experts.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading experts...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {error && (
+        <Alert className="mb-4 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+          <AlertDescription className="text-red-800 dark:text-red-400">
+            {error}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-2"
+              onClick={() => setError("")}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
+          <AlertDescription className="text-green-800 dark:text-green-400">
+            {success}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+        <h2 className="text-xl md:text-2xl font-semibold">
+          Expert Services Management
+        </h2>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <div className="relative w-full sm:w-64 dark:bg-slate-600 dark:text-white rounded-lg">
+            {isSearching ? (
+              <Loader2 className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400 animate-spin" />
+            ) : (
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
+            <Input
+              type="text"
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-full dark:bg-slate-700 text-sm sm:text-base"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg shadow-sm border bg-white dark:bg-gray-800 dark:border-gray-700">
+        <Table className="min-w-[600px]">
           <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
             <TableRow>
-              <TableHead></TableHead>
+              <TableHead className="w-12"></TableHead>
               <TableHead>Expert Name</TableHead>
-              <TableHead>Service Type</TableHead>
-              <TableHead>Service Fee</TableHead>
-              <TableHead>Service Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Services Offered</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {paginatedService.map((expert) => (
-              <TableRow key={expert.expert}>
-                <TableCell>
-                  <Checkbox />
-                </TableCell>
-
-                <TableCell>
-                  
-                    <Link
-                      to={`/expert/${expert.expert}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {expert.expert}
-                    </Link>
-                  
-                </TableCell>
-
-                <TableCell className="text-sm">{expert.service}</TableCell>
-                <TableCell className="font-semibold text-sm">£{expert.amount.toFixed(2)}</TableCell>
-                <TableCell className="text-sm">{expert.date}</TableCell>
-                <TableCell>
-                  <Badge
-                    className={
-                      expert.status === "Completed"
-                        ? "bg-green-200 text-green-800 p-2 w-20 text-center"
-                        : "bg-yellow-200 text-yellow-800 p-2 w-20 text-center"
-                    }
-                  >
-                    {expert.status}
-                  </Badge>
-                </TableCell>
-
-                <TableCell className="flex gap-2 justify-center">
-                  <Button size="icon" variant="ghost">
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <Pencil className="w-4 h-4 text-gray-600 dark:text-white" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <Eye className="w-4 h-4 text-gray-600 dark:text-white" />
-                  </Button>
-                  <Button size="icon" variant="ghost">
-                    <MoreVertical className="w-4 h-4 text-gray-600 dark:text-white" />
-                  </Button>
+            {filteredExperts.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="text-center py-8 text-gray-500"
+                >
+                  No experts found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredExperts.map((expert) => (
+                <React.Fragment key={expert.id}>
+                  {/* Main Row */}
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={() => handleRowClick(expert.id)}
+                  >
+                    <TableCell>
+                      {expandedExpertId === expert.id ? (
+                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-500" />
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {getFullName(expert)}
+                    </TableCell>
+                    <TableCell>{expert.email}</TableCell>
+                    <TableCell>
+                      <Badge
+                        className={
+                          expert.servicesCount > 0
+                            ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                        }
+                      >
+                        {expert.servicesCount}{" "}
+                        {expert.servicesCount === 1 ? "Service" : "Services"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+
+                  {/* Expanded Row - Services Card */}
+                  {expandedExpertId === expert.id && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-0">
+                        <div className="bg-gray-50 dark:bg-gray-700 p-4 border-t dark:border-gray-600">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                              <Briefcase className="w-4 h-4" />
+                              Services Offered by {getFullName(expert)}
+                            </h4>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAddService(expert.id);
+                                setEditingService(null);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Add Service
+                            </Button>
+                          </div>
+
+                          {/* Add Service Form */}
+                          {showAddService === expert.id && (
+                            <div className="border rounded-lg p-4 mb-4 bg-white dark:bg-gray-800">
+                              <h5 className="font-medium mb-3 text-gray-900 dark:text-white">
+                                Add New Service
+                              </h5>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Service *
+                                  </label>
+                                  <select
+                                    value={newService.serviceId}
+                                    onChange={(e) =>
+                                      setNewService({
+                                        ...newService,
+                                        serviceId: e.target.value,
+                                      })
+                                    }
+                                    className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <option value="">Select a service</option>
+                                    {platformServices
+                                      .filter(
+                                        (ps) =>
+                                          !expert.services.some(
+                                            (es) => es.serviceId === ps.id
+                                          )
+                                      )
+                                      .map((service) => (
+                                        <option
+                                          key={service.id}
+                                          value={service.id}
+                                        >
+                                          {service.name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Price *
+                                  </label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={newService.price}
+                                    onChange={(e) =>
+                                      setNewService({
+                                        ...newService,
+                                        price: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Enter price"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Description
+                                  </label>
+                                  <Input
+                                    value={newService.description}
+                                    onChange={(e) =>
+                                      setNewService({
+                                        ...newService,
+                                        description: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Optional description"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowAddService(null);
+                                    setNewService({
+                                      serviceId: "",
+                                      price: "",
+                                      description: "",
+                                    });
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddService(expert.id);
+                                  }}
+                                  disabled={serviceAdding}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  {serviceAdding ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                      Adding...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="w-4 h-4 mr-1" />
+                                      Add
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Services List */}
+                          {loadingServices === expert.id ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                              <span className="ml-2 text-gray-600 dark:text-gray-400">
+                                Loading services...
+                              </span>
+                            </div>
+                          ) : expert.services.length === 0 ? (
+                            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                              No services added yet.
+                            </p>
+                          ) : (
+                            <div className="space-y-3">
+                              {expert.services.map((es) => {
+                                const serviceDetails = platformServices.find(
+                                  (ps) => ps.id === es.serviceId
+                                );
+                                const isEditing =
+                                  editingService?.expertId === expert.id &&
+                                  editingService?.service.id === es.id;
+
+                                return (
+                                  <div
+                                    key={es.id}
+                                    className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-800"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {isEditing ? (
+                                      // Edit mode
+                                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Service
+                                          </label>
+                                          <Input
+                                            value={
+                                              serviceDetails?.name ||
+                                              es.service?.name ||
+                                              "Unknown Service"
+                                            }
+                                            disabled
+                                            className="bg-gray-100 dark:bg-gray-700"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Price *
+                                          </label>
+                                          <Input
+                                            type="number"
+                                            step="0.01"
+                                            value={editServiceData.price}
+                                            onChange={(e) =>
+                                              setEditServiceData({
+                                                ...editServiceData,
+                                                price: e.target.value,
+                                              })
+                                            }
+                                            placeholder="Enter price"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Description
+                                          </label>
+                                          <Input
+                                            value={editServiceData.description}
+                                            onChange={(e) =>
+                                              setEditServiceData({
+                                                ...editServiceData,
+                                                description: e.target.value,
+                                              })
+                                            }
+                                            placeholder="Optional description"
+                                          />
+                                        </div>
+                                        <div className="md:col-span-3 flex justify-end gap-2">
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              setEditingService(null)
+                                            }
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={handleUpdateService}
+                                            disabled={serviceUpdating}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                                          >
+                                            {serviceUpdating ? (
+                                              <>
+                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                                Saving...
+                                              </>
+                                            ) : (
+                                              "Save Changes"
+                                            )}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      // View mode
+                                      <>
+                                        <div className="flex-1">
+                                          <h5 className="font-medium text-gray-900 dark:text-white">
+                                            {serviceDetails?.name ||
+                                              es.service?.name ||
+                                              "Unknown Service"}
+                                          </h5>
+                                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {serviceDetails?.description ||
+                                              es.service?.description}
+                                          </p>
+                                          <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
+                                            £{es.price.toFixed(2)}
+                                          </p>
+                                          {es.additionalDetails
+                                            ?.description && (
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                              <span className="font-medium">
+                                                Note:
+                                              </span>{" "}
+                                              {
+                                                es.additionalDetails
+                                                  .description
+                                              }
+                                            </p>
+                                          )}
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() =>
+                                              handleStartEditService(
+                                                expert.id,
+                                                es
+                                              )
+                                            }
+                                            title="Edit Service"
+                                          >
+                                            <Pencil className="w-4 h-4 text-blue-600" />
+                                          </Button>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() =>
+                                              handleDeleteService(
+                                                expert.id,
+                                                es.id
+                                              )
+                                            }
+                                            title="Remove Service"
+                                          >
+                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-3 text-sm text-gray-500 dark:text-white">
-        <div className="text-center sm:text-left w-full sm:w-auto">
-          Showing {Math.min((currentPage - 1) * pageSize + 1, expertservice.length)}–
-          {Math.min(currentPage * pageSize, expertservice.length)} of {expertservice.length}
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2 text-sm text-gray-500 dark:text-white">
+        <div>
+          Showing{" "}
+          {Math.min((currentPage - 1) * pageSize + 1, filteredExperts.length)}–
+          {Math.min(currentPage * pageSize, filteredExperts.length)} out of{" "}
+          {filteredExperts.length}
         </div>
-
-        <div className="flex flex-wrap justify-center gap-1 w-full sm:w-auto">
+        <div className="flex gap-1">
           <button
-            className="border px-2 py-1 rounded"
+            className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
           >
             ⟨
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`border px-3 py-1 rounded ${
-                currentPage === i + 1 ? "bg-gray-300 font-semibold" : ""
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+
+            return (
+              <button
+                key={pageNum}
+                className={`border px-2 rounded ${
+                  currentPage === pageNum ? "bg-gray-300 dark:bg-gray-600" : ""
+                }`}
+                onClick={() => handlePageChange(pageNum)}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
           <button
-            className="border px-2 py-1 rounded"
+            className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              handlePageChange(Math.min(currentPage + 1, totalPages))
+            }
           >
             ⟩
           </button>
