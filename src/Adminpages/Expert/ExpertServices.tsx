@@ -13,8 +13,6 @@ import {
   Pencil,
   Trash2,
   Plus,
-  ChevronDown,
-  ChevronRight,
   Loader2,
   Search,
   Briefcase,
@@ -71,28 +69,25 @@ function useDebounce<T>(value: T, delay: number): T {
 
 const ExpertServices: React.FC = () => {
   const [experts, setExperts] = useState<ExpertWithServices[]>([]);
-  const [filteredExperts, setFilteredExperts] = useState<ExpertWithServices[]>(
-    []
-  );
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  // Expanded row state
-  const [expandedExpertId, setExpandedExpertId] = useState<string | null>(null);
-  const [loadingServices, setLoadingServices] = useState<string | null>(null);
+  // Modal state
+  const [selectedExpert, setSelectedExpert] = useState<ExpertWithServices | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loadingServices, setLoadingServices] = useState(false);
 
   // Platform services for add service dropdown
-  const [platformServices, setPlatformServices] = useState<PlatformService[]>(
-    []
-  );
+  const [platformServices, setPlatformServices] = useState<PlatformService[]>([]);
 
-  // Add/Edit service state
-  const [showAddService, setShowAddService] = useState<string | null>(null);
+  // Add service state
+  const [showAddService, setShowAddService] = useState(false);
   const [serviceAdding, setServiceAdding] = useState(false);
   const [newService, setNewService] = useState({
     serviceId: "",
@@ -101,10 +96,7 @@ const ExpertServices: React.FC = () => {
   });
 
   // Edit service state
-  const [editingService, setEditingService] = useState<{
-    expertId: string;
-    service: ExpertService;
-  } | null>(null);
+  const [editingService, setEditingService] = useState<ExpertService | null>(null);
   const [editServiceData, setEditServiceData] = useState({
     price: "",
     description: "",
@@ -168,17 +160,15 @@ const ExpertServices: React.FC = () => {
         );
 
         setExperts(expertsWithServices);
-        setFilteredExperts(expertsWithServices);
         setTotalPages(
           response.data.totalPages ||
-            Math.ceil(
-              (response.data.total || response.data.data.length) / pageSize
-            )
+            Math.ceil((response.data.total || response.data.data.length) / pageSize)
         );
+        setTotalCount(response.data.total || response.data.data.length);
       } else {
         setExperts([]);
-        setFilteredExperts([]);
         setTotalPages(1);
+        setTotalCount(0);
       }
     } catch (err: any) {
       console.error("Error fetching experts:", err);
@@ -255,8 +245,8 @@ const ExpertServices: React.FC = () => {
         );
 
         setExperts(expertsWithServices);
-        setFilteredExperts(expertsWithServices);
         setTotalPages(response.data.totalPages || 1);
+        setTotalCount(searchResults.length);
       }
     } catch (err: any) {
       console.error("Error searching experts:", err);
@@ -291,7 +281,7 @@ const ExpertServices: React.FC = () => {
   // Fetch services for a specific expert
   const fetchExpertServices = async (expertId: string) => {
     try {
-      setLoadingServices(expertId);
+      setLoadingServices(true);
       const token = localStorage.getItem("adminToken");
       const response = await axios.get(
         `${import.meta.env.VITE_PORT}/profile/${expertId}/services`,
@@ -302,20 +292,14 @@ const ExpertServices: React.FC = () => {
         }
       );
 
-      if (response.data) {
-        // Update the expert's services in state
+      if (response.data && selectedExpert) {
+        setSelectedExpert({
+          ...selectedExpert,
+          services: response.data,
+          servicesCount: response.data.length,
+        });
+        // Also update the experts list
         setExperts((prev) =>
-          prev.map((expert) =>
-            expert.id === expertId
-              ? {
-                  ...expert,
-                  services: response.data,
-                  servicesCount: response.data.length,
-                }
-              : expert
-          )
-        );
-        setFilteredExperts((prev) =>
           prev.map((expert) =>
             expert.id === expertId
               ? {
@@ -330,27 +314,29 @@ const ExpertServices: React.FC = () => {
     } catch (err: any) {
       console.error("Error fetching expert services:", err);
     } finally {
-      setLoadingServices(null);
+      setLoadingServices(false);
     }
   };
 
-  // Handle row click to expand/collapse
-  const handleRowClick = (expertId: string) => {
-    if (expandedExpertId === expertId) {
-      setExpandedExpertId(null);
-      setShowAddService(null);
-      setEditingService(null);
-    } else {
-      setExpandedExpertId(expertId);
-      setShowAddService(null);
-      setEditingService(null);
-      fetchExpertServices(expertId);
-    }
+  // Handle row click to open modal
+  const handleRowClick = (expert: ExpertWithServices) => {
+    setSelectedExpert(expert);
+    setShowModal(true);
+    setShowAddService(false);
+    setEditingService(null);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedExpert(null);
+    setShowAddService(false);
+    setEditingService(null);
   };
 
   // Add service handler
-  const handleAddService = async (expertId: string) => {
-    if (!newService.serviceId || !newService.price) {
+  const handleAddService = async () => {
+    if (!selectedExpert || !newService.serviceId || !newService.price) {
       setError("Please select a service and enter a price");
       return;
     }
@@ -360,7 +346,7 @@ const ExpertServices: React.FC = () => {
       const token = localStorage.getItem("adminToken");
 
       await axios.post(
-        `${import.meta.env.VITE_PORT}/profile/${expertId}/services/${newService.serviceId}`,
+        `${import.meta.env.VITE_PORT}/profile/${selectedExpert.id}/services/${newService.serviceId}`,
         {
           price: parseFloat(newService.price),
           additionalDetails: newService.description
@@ -376,9 +362,9 @@ const ExpertServices: React.FC = () => {
       );
 
       setSuccess("Service added successfully!");
-      setShowAddService(null);
+      setShowAddService(false);
       setNewService({ serviceId: "", price: "", description: "" });
-      fetchExpertServices(expertId);
+      fetchExpertServices(selectedExpert.id);
 
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -390,13 +376,14 @@ const ExpertServices: React.FC = () => {
   };
 
   // Delete service handler
-  const handleDeleteService = async (expertId: string, serviceId: string) => {
+  const handleDeleteService = async (serviceId: string) => {
+    if (!selectedExpert) return;
     if (!confirm("Are you sure you want to remove this service?")) return;
 
     try {
       const token = localStorage.getItem("adminToken");
       await axios.delete(
-        `${import.meta.env.VITE_PORT}/profile/${expertId}/services/${serviceId}`,
+        `${import.meta.env.VITE_PORT}/profile/${selectedExpert.id}/services/${serviceId}`,
         {
           headers: {
             "Api-Key": token,
@@ -405,7 +392,7 @@ const ExpertServices: React.FC = () => {
       );
 
       setSuccess("Service removed successfully!");
-      fetchExpertServices(expertId);
+      fetchExpertServices(selectedExpert.id);
 
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -415,17 +402,18 @@ const ExpertServices: React.FC = () => {
   };
 
   // Start editing a service
-  const handleStartEditService = (expertId: string, service: ExpertService) => {
-    setEditingService({ expertId, service });
+  const handleStartEditService = (service: ExpertService) => {
+    setEditingService(service);
     setEditServiceData({
       price: service.price.toString(),
       description: service.additionalDetails?.description || "",
     });
+    setShowAddService(false);
   };
 
   // Update service handler
   const handleUpdateService = async () => {
-    if (!editingService || !editServiceData.price) {
+    if (!selectedExpert || !editingService || !editServiceData.price) {
       setError("Please enter a price");
       return;
     }
@@ -436,7 +424,7 @@ const ExpertServices: React.FC = () => {
 
       // Delete and re-add with new price (since API might not have PATCH for service)
       await axios.delete(
-        `${import.meta.env.VITE_PORT}/profile/${editingService.expertId}/services/${editingService.service.id}`,
+        `${import.meta.env.VITE_PORT}/profile/${selectedExpert.id}/services/${editingService.id}`,
         {
           headers: {
             "Api-Key": token,
@@ -445,7 +433,7 @@ const ExpertServices: React.FC = () => {
       );
 
       await axios.post(
-        `${import.meta.env.VITE_PORT}/profile/${editingService.expertId}/services/${editingService.service.serviceId}`,
+        `${import.meta.env.VITE_PORT}/profile/${selectedExpert.id}/services/${editingService.serviceId}`,
         {
           price: parseFloat(editServiceData.price),
           additionalDetails: editServiceData.description
@@ -462,7 +450,7 @@ const ExpertServices: React.FC = () => {
 
       setSuccess("Service updated successfully!");
       setEditingService(null);
-      fetchExpertServices(editingService.expertId);
+      fetchExpertServices(selectedExpert.id);
 
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -475,9 +463,7 @@ const ExpertServices: React.FC = () => {
 
   // Get full name
   const getFullName = (expert: Expert) => {
-    return (
-      `${expert.firstName || ""} ${expert.lastName || ""}`.trim() || "N/A"
-    );
+    return `${expert.firstName || ""} ${expert.lastName || ""}`.trim() || "N/A";
   };
 
   // Initial load
@@ -496,7 +482,7 @@ const ExpertServices: React.FC = () => {
     }
   }, [debouncedSearchTerm]);
 
-  // Handle page changes
+  // Handle page changes (only when not searching)
   useEffect(() => {
     if (!debouncedSearchTerm.trim()) {
       fetchExperts(currentPage);
@@ -505,7 +491,6 @@ const ExpertServices: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setExpandedExpertId(null);
     if (debouncedSearchTerm.trim()) {
       searchExperts(debouncedSearchTerm, page);
     }
@@ -577,7 +562,6 @@ const ExpertServices: React.FC = () => {
         <Table className="min-w-[600px]">
           <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
             <TableRow>
-              <TableHead className="w-12"></TableHead>
               <TableHead>Expert Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Services Offered</TableHead>
@@ -585,365 +569,33 @@ const ExpertServices: React.FC = () => {
           </TableHeader>
 
           <TableBody>
-            {filteredExperts.length === 0 ? (
+            {experts.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-8 text-gray-500"
-                >
+                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                   No experts found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredExperts.map((expert) => (
-                <React.Fragment key={expert.id}>
-                  {/* Main Row */}
-                  <TableRow
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                    onClick={() => handleRowClick(expert.id)}
-                  >
-                    <TableCell>
-                      {expandedExpertId === expert.id ? (
-                        <ChevronDown className="w-5 h-5 text-gray-500" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-500" />
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {getFullName(expert)}
-                    </TableCell>
-                    <TableCell>{expert.email}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          expert.servicesCount > 0
-                            ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                        }
-                      >
-                        {expert.servicesCount}{" "}
-                        {expert.servicesCount === 1 ? "Service" : "Services"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-
-                  {/* Expanded Row - Services Card */}
-                  {expandedExpertId === expert.id && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="p-0">
-                        <div className="bg-gray-50 dark:bg-gray-700 p-4 border-t dark:border-gray-600">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                              <Briefcase className="w-4 h-4" />
-                              Services Offered by {getFullName(expert)}
-                            </h4>
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowAddService(expert.id);
-                                setEditingService(null);
-                              }}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Add Service
-                            </Button>
-                          </div>
-
-                          {/* Add Service Form */}
-                          {showAddService === expert.id && (
-                            <div className="border rounded-lg p-4 mb-4 bg-white dark:bg-gray-800">
-                              <h5 className="font-medium mb-3 text-gray-900 dark:text-white">
-                                Add New Service
-                              </h5>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Service *
-                                  </label>
-                                  <select
-                                    value={newService.serviceId}
-                                    onChange={(e) =>
-                                      setNewService({
-                                        ...newService,
-                                        serviceId: e.target.value,
-                                      })
-                                    }
-                                    className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <option value="">Select a service</option>
-                                    {platformServices
-                                      .filter(
-                                        (ps) =>
-                                          !expert.services.some(
-                                            (es) => es.serviceId === ps.id
-                                          )
-                                      )
-                                      .map((service) => (
-                                        <option
-                                          key={service.id}
-                                          value={service.id}
-                                        >
-                                          {service.name}
-                                        </option>
-                                      ))}
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Price *
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={newService.price}
-                                    onChange={(e) =>
-                                      setNewService({
-                                        ...newService,
-                                        price: e.target.value,
-                                      })
-                                    }
-                                    placeholder="Enter price"
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Description
-                                  </label>
-                                  <Input
-                                    value={newService.description}
-                                    onChange={(e) =>
-                                      setNewService({
-                                        ...newService,
-                                        description: e.target.value,
-                                      })
-                                    }
-                                    placeholder="Optional description"
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowAddService(null);
-                                    setNewService({
-                                      serviceId: "",
-                                      price: "",
-                                      description: "",
-                                    });
-                                  }}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddService(expert.id);
-                                  }}
-                                  disabled={serviceAdding}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                  {serviceAdding ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                      Adding...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Plus className="w-4 h-4 mr-1" />
-                                      Add
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Services List */}
-                          {loadingServices === expert.id ? (
-                            <div className="flex items-center justify-center py-8">
-                              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                              <span className="ml-2 text-gray-600 dark:text-gray-400">
-                                Loading services...
-                              </span>
-                            </div>
-                          ) : expert.services.length === 0 ? (
-                            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                              No services added yet.
-                            </p>
-                          ) : (
-                            <div className="space-y-3">
-                              {expert.services.map((es) => {
-                                const serviceDetails = platformServices.find(
-                                  (ps) => ps.id === es.serviceId
-                                );
-                                const isEditing =
-                                  editingService?.expertId === expert.id &&
-                                  editingService?.service.id === es.id;
-
-                                return (
-                                  <div
-                                    key={es.id}
-                                    className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-800"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {isEditing ? (
-                                      // Edit mode
-                                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Service
-                                          </label>
-                                          <Input
-                                            value={
-                                              serviceDetails?.name ||
-                                              es.service?.name ||
-                                              "Unknown Service"
-                                            }
-                                            disabled
-                                            className="bg-gray-100 dark:bg-gray-700"
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Price *
-                                          </label>
-                                          <Input
-                                            type="number"
-                                            step="0.01"
-                                            value={editServiceData.price}
-                                            onChange={(e) =>
-                                              setEditServiceData({
-                                                ...editServiceData,
-                                                price: e.target.value,
-                                              })
-                                            }
-                                            placeholder="Enter price"
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Description
-                                          </label>
-                                          <Input
-                                            value={editServiceData.description}
-                                            onChange={(e) =>
-                                              setEditServiceData({
-                                                ...editServiceData,
-                                                description: e.target.value,
-                                              })
-                                            }
-                                            placeholder="Optional description"
-                                          />
-                                        </div>
-                                        <div className="md:col-span-3 flex justify-end gap-2">
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() =>
-                                              setEditingService(null)
-                                            }
-                                          >
-                                            Cancel
-                                          </Button>
-                                          <Button
-                                            type="button"
-                                            size="sm"
-                                            onClick={handleUpdateService}
-                                            disabled={serviceUpdating}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                                          >
-                                            {serviceUpdating ? (
-                                              <>
-                                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                                Saving...
-                                              </>
-                                            ) : (
-                                              "Save Changes"
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      // View mode
-                                      <>
-                                        <div className="flex-1">
-                                          <h5 className="font-medium text-gray-900 dark:text-white">
-                                            {serviceDetails?.name ||
-                                              es.service?.name ||
-                                              "Unknown Service"}
-                                          </h5>
-                                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            {serviceDetails?.description ||
-                                              es.service?.description}
-                                          </p>
-                                          <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
-                                            £{es.price.toFixed(2)}
-                                          </p>
-                                          {es.additionalDetails
-                                            ?.description && (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                              <span className="font-medium">
-                                                Note:
-                                              </span>{" "}
-                                              {
-                                                es.additionalDetails
-                                                  .description
-                                              }
-                                            </p>
-                                          )}
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() =>
-                                              handleStartEditService(
-                                                expert.id,
-                                                es
-                                              )
-                                            }
-                                            title="Edit Service"
-                                          >
-                                            <Pencil className="w-4 h-4 text-blue-600" />
-                                          </Button>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() =>
-                                              handleDeleteService(
-                                                expert.id,
-                                                es.id
-                                              )
-                                            }
-                                            title="Remove Service"
-                                          >
-                                            <Trash2 className="w-4 h-4 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </React.Fragment>
+              experts.map((expert) => (
+                <TableRow
+                  key={expert.id}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => handleRowClick(expert)}
+                >
+                  <TableCell className="font-medium">{getFullName(expert)}</TableCell>
+                  <TableCell>{expert.email}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        expert.servicesCount > 0
+                          ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                      }
+                    >
+                      {expert.servicesCount} {expert.servicesCount === 1 ? "Service" : "Services"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
               ))
             )}
           </TableBody>
@@ -953,10 +605,9 @@ const ExpertServices: React.FC = () => {
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2 text-sm text-gray-500 dark:text-white">
         <div>
-          Showing{" "}
-          {Math.min((currentPage - 1) * pageSize + 1, filteredExperts.length)}–
-          {Math.min(currentPage * pageSize, filteredExperts.length)} out of{" "}
-          {filteredExperts.length}
+          Showing {Math.min((currentPage - 1) * pageSize + 1, experts.length)}–
+          {Math.min(currentPage * pageSize, experts.length)} out of {experts.length}
+          {totalCount !== experts.length && ` (${totalCount} total)`}
         </div>
         <div className="flex gap-1">
           <button
@@ -993,14 +644,302 @@ const ExpertServices: React.FC = () => {
           <button
             className="border px-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
-            onClick={() =>
-              handlePageChange(Math.min(currentPage + 1, totalPages))
-            }
+            onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
           >
             ⟩
           </button>
         </div>
       </div>
+
+      {/* Services Modal */}
+      {showModal && selectedExpert && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Briefcase className="w-6 h-6 text-blue-600" />
+                <div>
+                  <h2 className="text-xl font-semibold dark:text-white">
+                    {getFullName(selectedExpert)}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {selectedExpert.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Services Offered ({selectedExpert.servicesCount})
+                </h3>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setShowAddService(true);
+                    setEditingService(null);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Service
+                </Button>
+              </div>
+
+              {/* Add Service Form */}
+              {showAddService && (
+                <div className="border rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-700">
+                  <h4 className="font-medium mb-3 text-gray-900 dark:text-white">
+                    Add New Service
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Service *
+                      </label>
+                      <select
+                        value={newService.serviceId}
+                        onChange={(e) =>
+                          setNewService({ ...newService, serviceId: e.target.value })
+                        }
+                        className="w-full p-2 border rounded-md dark:bg-gray-600 dark:text-white"
+                      >
+                        <option value="">Select a service</option>
+                        {platformServices
+                          .filter(
+                            (ps) =>
+                              !selectedExpert.services.some((es) => es.serviceId === ps.id)
+                          )
+                          .map((service) => (
+                            <option key={service.id} value={service.id}>
+                              {service.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Price *
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={newService.price}
+                        onChange={(e) =>
+                          setNewService({ ...newService, price: e.target.value })
+                        }
+                        placeholder="Enter price"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Description
+                      </label>
+                      <Input
+                        value={newService.description}
+                        onChange={(e) =>
+                          setNewService({ ...newService, description: e.target.value })
+                        }
+                        placeholder="Optional description"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowAddService(false);
+                        setNewService({ serviceId: "", price: "", description: "" });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleAddService}
+                      disabled={serviceAdding}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      {serviceAdding ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Services List */}
+              {loadingServices ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <span className="ml-2 text-gray-600 dark:text-gray-400">
+                    Loading services...
+                  </span>
+                </div>
+              ) : selectedExpert.services.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                  No services added yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {selectedExpert.services.map((es) => {
+                    const serviceDetails = platformServices.find(
+                      (ps) => ps.id === es.serviceId
+                    );
+                    const isEditing = editingService?.id === es.id;
+
+                    return (
+                      <div
+                        key={es.id}
+                        className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700"
+                      >
+                        {isEditing ? (
+                          // Edit mode
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Service
+                              </label>
+                              <Input
+                                value={
+                                  serviceDetails?.name ||
+                                  es.service?.name ||
+                                  "Unknown Service"
+                                }
+                                disabled
+                                className="bg-gray-100 dark:bg-gray-600"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Price *
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={editServiceData.price}
+                                onChange={(e) =>
+                                  setEditServiceData({
+                                    ...editServiceData,
+                                    price: e.target.value,
+                                  })
+                                }
+                                placeholder="Enter price"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Description
+                              </label>
+                              <Input
+                                value={editServiceData.description}
+                                onChange={(e) =>
+                                  setEditServiceData({
+                                    ...editServiceData,
+                                    description: e.target.value,
+                                  })
+                                }
+                                placeholder="Optional description"
+                              />
+                            </div>
+                            <div className="md:col-span-2 flex justify-end gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingService(null)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleUpdateService}
+                                disabled={serviceUpdating}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                {serviceUpdating ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  "Save Changes"
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          // View mode
+                          <>
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900 dark:text-white">
+                                {serviceDetails?.name ||
+                                  es.service?.name ||
+                                  "Unknown Service"}
+                              </h5>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {serviceDetails?.description || es.service?.description}
+                              </p>
+                              <p className="text-lg font-semibold text-green-600 dark:text-green-400 mt-1">
+                                £{es.price.toFixed(2)}
+                              </p>
+                              {es.additionalDetails?.description && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  <span className="font-medium">Note:</span>{" "}
+                                  {es.additionalDetails.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleStartEditService(es)}
+                                title="Edit Service"
+                              >
+                                <Pencil className="w-4 h-4 text-blue-600" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDeleteService(es.id)}
+                                title="Remove Service"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
