@@ -193,20 +193,20 @@ const Player: React.FC = () => {
         },
       );
 
-      if (response.status === 200) {
-        setPlayers(response.data);
-        setFilteredPlayers(response.data);
-        // Estimate total players for pagination
-        if (response.data.length < pageSize && page === 1) {
-          setTotalPlayers(response.data.length);
-          setTotalPages(1);
-        } else if (response.data.length < pageSize) {
-          setTotalPlayers((page - 1) * pageSize + response.data.length);
-          setTotalPages(page);
-        } else {
-          setTotalPlayers(page * pageSize + 1);
-          setTotalPages(page + 1);
-        }
+      if (response.status === 200 && response.data) {
+        const playersData = response.data.data || response.data;
+        const pages = response.data.totalPages || 1;
+        const currentPageNum = response.data.page || page;
+
+        setPlayers(Array.isArray(playersData) ? playersData : []);
+        setFilteredPlayers(Array.isArray(playersData) ? playersData : []);
+        setTotalPages(pages);
+        setCurrentPage(currentPageNum);
+        setTotalPlayers(
+          pages * pageSize > playersData.length
+            ? pages * pageSize
+            : playersData.length,
+        );
       }
     } catch (error: any) {
       console.error("Error fetching players:", error);

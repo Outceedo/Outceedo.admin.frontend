@@ -269,14 +269,14 @@ const Sponsor: React.FC = () => {
       );
 
       if (response.data && response.data.data) {
-        setSponsors(response.data.data);
-        setFilteredSponsors(response.data.data);
-        setTotalPages(
-          response.data.totalPages ||
-            Math.ceil(
-              (response.data.total || response.data.data.length) / itemsPerPage,
-            ),
-        );
+        const sponsorsData = response.data.data;
+        const pages = response.data.totalPages || 1;
+        const currentPageNum = response.data.page || page;
+
+        setSponsors(sponsorsData);
+        setFilteredSponsors(sponsorsData);
+        setTotalPages(pages);
+        setCurrentPage(currentPageNum);
       } else {
         setSponsors([]);
         setFilteredSponsors([]);

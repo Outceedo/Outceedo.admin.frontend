@@ -186,15 +186,15 @@ const Expert: React.FC = () => {
       });
 
       if (response.data && response.data.data) {
-        setExperts(response.data.data);
-        setFilteredExperts(response.data.data);
-        setTotalPages(
-          response.data.totalPages ||
-            Math.ceil(
-              (response.data.total || response.data.data.length) / pageSize,
-            ),
-        );
-        setTotalCount(response.data.total || response.data.data.length);
+        const expertsData = response.data.data;
+        const pages = response.data.totalPages || 1;
+        const currentPageNum = response.data.page || page;
+
+        setExperts(expertsData);
+        setFilteredExperts(expertsData);
+        setTotalPages(pages);
+        setCurrentPage(currentPageNum);
+        setTotalCount(pages * pageSize);
       } else {
         setExperts([]);
         setFilteredExperts([]);

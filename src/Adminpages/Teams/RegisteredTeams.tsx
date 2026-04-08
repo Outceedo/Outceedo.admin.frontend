@@ -291,16 +291,16 @@ const RegisteredTeams: React.FC = () => {
       );
 
       if (response.data && response.data.data) {
-        setTeams(response.data.data);
-        setFilteredTeams(response.data.data);
-        setTotalPages(
-          response.data.totalPages ||
-            Math.ceil(
-              (response.data.total || response.data.data.length) / pageSize,
-            ),
-        );
+        const teamsData = response.data.data;
+        const pages = response.data.totalPages || 1;
+        const currentPageNum = response.data.page || page;
+
+        setTeams(teamsData);
+        setFilteredTeams(teamsData);
+        setTotalPages(pages);
+        setCurrentPage(currentPageNum);
       } else if (Array.isArray(response.data)) {
-        // Handle case where data is directly an array
+        // Handle case where data is directly an array (fallback)
         setTeams(response.data);
         setFilteredTeams(response.data);
         setTotalPages(Math.ceil(response.data.length / pageSize) || 1);
