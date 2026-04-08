@@ -22,7 +22,6 @@ import Expert from "./Adminpages/Expert/Expert";
 import EditExpert from "./Adminpages/Expert/EditExpert";
 import ExpertBooking from "./Adminpages/Expert/ExpertBooking";
 import ExpertMedia from "./Adminpages/Expert/ExpertMedia";
-import ExpertServices from "./Adminpages/Expert/ExpertServices";
 import PaymentClaims from "./Adminpages/Expert/PaymentClaims";
 
 import Sponsor from "./Adminpages/Sponsor/Sponsor";
@@ -201,7 +200,7 @@ const AppRoutes = () => {
         <Route path="expert/booking" element={<ExpertBooking />} />
         <Route path="expert/paymentclaims" element={<PaymentClaims />} />
         <Route path="expert/media" element={<ExpertMedia />} />
-        <Route path="expert/services" element={<ExpertServices />} />
+        {/* <Route path="expert/services" element={<ExpertServices />} /> */}
         <Route path="expert/edit/:id" element={<EditExpert />} />
         <Route path="expert/referral" element={<ReferredExpert />} />
 

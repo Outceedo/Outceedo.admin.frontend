@@ -108,13 +108,6 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
 
     {
       id: 3,
-      name: "Services Offered",
-      icon: "fas fa-hands-helping",
-      path: "/admin/expert/services",
-    },
-
-    {
-      id: 3,
       name: "Transactions/Claims",
       icon: "fas fa-money-check-alt",
       path: "/admin/expert/paymentclaims",
