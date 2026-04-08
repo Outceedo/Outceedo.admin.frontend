@@ -107,11 +107,8 @@ const Expert: React.FC = () => {
   const pageSize = 10;
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  // Calculate pagination based on filtered data (for month filtering)
-  const paginatedExperts = filteredExperts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  // Data is already paginated from server, no need to slice again
+  const paginatedExperts = filteredExperts;
 
   // Search experts using the global search API
   const searchExperts = async (query: string, page: number) => {

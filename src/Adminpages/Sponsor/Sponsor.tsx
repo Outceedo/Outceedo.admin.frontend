@@ -188,11 +188,8 @@ const Sponsor: React.FC = () => {
   const itemsPerPage = 7;
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  // Calculate pagination based on filtered data
-  const paginatedSponsors = filteredSponsors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  // Data is already paginated from server, no need to slice again
+  const paginatedSponsors = filteredSponsors;
 
   // Search sponsors using the global search API
   const searchSponsors = async (query: string, page: number) => {

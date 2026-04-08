@@ -191,10 +191,8 @@ const RegisteredTeams: React.FC = () => {
   const pageSize = 10;
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  const paginatedTeams = filteredTeams.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  // Data is already paginated from server, no need to slice again
+  const paginatedTeams = filteredTeams;
 
   // Initialize months
   useEffect(() => {
