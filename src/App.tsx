@@ -52,6 +52,7 @@ import ReferredExpert from "./Adminpages/Expert/referred";
 import BannedUsers from "./Adminpages/Moderation/BannedUsers";
 import SuspendedUsers from "./Adminpages/Moderation/SuspendedUsers";
 import DeletedUsers from "./Adminpages/Moderation/DeletedUsers";
+import TeamBooking from "./Adminpages/Teams/Booking";
 
 // ---------------------- Auth Context ----------------------
 interface AuthContextType {
@@ -220,7 +221,7 @@ const AppRoutes = () => {
 
         {/* Team Routes */}
         <Route path="team" element={<RegisteredTeams />} />
-         <Route path="team/booking" element={< />} />
+        <Route path="team/booking" element={<TeamBooking />} />
         <Route path="team/registeredclubs" element={<RegisteredClubs />} />
         <Route
           path="team/playersassociations"

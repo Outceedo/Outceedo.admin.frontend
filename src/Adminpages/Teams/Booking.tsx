@@ -88,7 +88,7 @@ type BookingType = {
   } | null;
 };
 
-const Booking = () => {
+const TeamBooking = () => {
   const [months, setMonths] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>("All Months");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -902,4 +902,4 @@ const Booking = () => {
   );
 };
 
-export default Booking;
+export default TeamBooking;
