@@ -220,6 +220,7 @@ const AppRoutes = () => {
 
         {/* Team Routes */}
         <Route path="team" element={<RegisteredTeams />} />
+         <Route path="team/booking" element={< />} />
         <Route path="team/registeredclubs" element={<RegisteredClubs />} />
         <Route
           path="team/playersassociations"

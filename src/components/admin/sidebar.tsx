@@ -172,6 +172,12 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       icon: "fas fa-users", // better for groups/teams
       path: "/admin/team",
     },
+    {
+      id: 2,
+      name: "Team Bookings",
+      icon: "fas fa-calendar-check",
+      path: "/admin/team/booking",
+    },
 
     {
       id: 2,
