@@ -30,6 +30,7 @@ import {
   DollarSign,
   Video,
   ExternalLink,
+  Users,
 } from "lucide-react";
 
 // Service type mapping
@@ -296,7 +297,7 @@ const TeamBooking = () => {
     return (
       <div className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold">Player Bookings</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold">Team Bookings</h2>
         </div>
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -348,7 +349,7 @@ const TeamBooking = () => {
             <TableHeader className="bg-blue-100 dark:bg-blue-900 text-xl">
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead className="min-w-[150px]">Player</TableHead>
+                <TableHead className="min-w-[150px]">Team</TableHead>
                 <TableHead className="min-w-[150px]">Expert</TableHead>
                 <TableHead className="min-w-[180px]">Service</TableHead>
                 <TableHead className="min-w-[120px]">Schedule</TableHead>
@@ -670,7 +671,7 @@ const TeamBooking = () => {
                 {/* Player Info */}
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <User className="w-4 h-4" /> Player
+                    <Users className="w-4 h-4" /> Team
                   </h3>
                   <div className="flex items-center gap-3">
                     {selectedBooking.player?.photo ? (
@@ -877,7 +878,7 @@ const TeamBooking = () => {
                   <div
                     className={`flex items-center gap-2 ${selectedBooking.playerMarkedComplete ? "text-green-600" : "text-gray-400"}`}
                   >
-                    {selectedBooking.playerMarkedComplete ? "✓" : "○"} Player
+                    {selectedBooking.playerMarkedComplete ? "✓" : "○"} Team
                     Marked Complete
                   </div>
                   <div
