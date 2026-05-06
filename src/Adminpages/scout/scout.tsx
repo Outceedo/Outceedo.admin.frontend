@@ -138,17 +138,19 @@ const Scout: React.FC = () => {
         return;
       }
 
-      const params: Record<string, any> = {
-        page,
-        limit: pageSize,
-        role: "scout",
-      };
-      if (query) params.q = query;
+      const baseUrl =
+        import.meta.env.VITE_PORT || "http://localhost:3000";
+      const queryParts = [
+        `role=scout`,
+        `page=${page}`,
+        `limit=${pageSize}`,
+      ];
+      if (query) queryParts.push(`q=${encodeURIComponent(query)}`);
+      const queryString = queryParts.join("&");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_PORT || "http://localhost:3000"}/profile/search`,
+        `${baseUrl}/profile/search?${queryString}`,
         {
-          params,
           headers: {
             Authorization: `Bearer ${token}`,
             "api-key": token,
