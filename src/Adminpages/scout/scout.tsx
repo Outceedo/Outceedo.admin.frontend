@@ -122,13 +122,9 @@ const Scout: React.FC = () => {
   const pageSize = 10;
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  const fetchScouts = async (page: number, query: string = "") => {
+  const searchScouts = async (query: string, page: number) => {
     try {
-      if (query) {
-        setIsSearching(true);
-      } else {
-        setLoading(true);
-      }
+      setIsSearching(true);
       setError("");
 
       const token = localStorage.getItem("adminToken");
@@ -140,13 +136,7 @@ const Scout: React.FC = () => {
 
       const baseUrl =
         import.meta.env.VITE_PORT || "http://localhost:3000";
-      const queryParts = [
-        `role=scout`,
-        `page=${page}`,
-        `limit=${pageSize}`,
-      ];
-      if (query) queryParts.push(`q=${encodeURIComponent(query)}`);
-      const queryString = queryParts.join("&");
+      const queryString = `q=${encodeURIComponent(query)}&page=${page}&limit=${pageSize}&role=scout`;
 
       const response = await axios.get(
         `${baseUrl}/profile/search?${queryString}`,
@@ -160,34 +150,71 @@ const Scout: React.FC = () => {
       );
 
       if (response.data) {
-        const results =
-          response.data.users || response.data.data || response.data || [];
-        const list = Array.isArray(results) ? results : [];
+        const searchResults = response.data.users || response.data.data || [];
+        setScouts(searchResults);
+        setFilteredScouts(searchResults);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalScouts(searchResults.length);
+      }
+    } catch (err: any) {
+      console.error("Error searching scouts:", err);
+      setError(err.response?.data?.message || "Failed to search scouts");
+    } finally {
+      setIsSearching(false);
+      setLoading(false);
+    }
+  };
+
+  const fetchScouts = async (page: number) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token = localStorage.getItem("adminToken");
+
+      const baseUrl =
+        import.meta.env.VITE_PORT || "http://localhost:3000";
+      const queryString = `page=${page}&limit=${pageSize}`;
+
+      const response = await axios.get(
+        `${baseUrl}/scout/scouts?${queryString}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "api-key": token,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (response.status === 200 && response.data) {
+        const scoutsData = response.data.data || response.data;
         const pages = response.data.totalPages || 1;
         const currentPageNum = response.data.page || page;
 
-        setScouts(list);
-        setFilteredScouts(list);
+        setScouts(Array.isArray(scoutsData) ? scoutsData : []);
+        setFilteredScouts(Array.isArray(scoutsData) ? scoutsData : []);
         setTotalPages(pages);
         setCurrentPage(currentPageNum);
         setTotalScouts(
-          response.data.total ||
-            (pages * pageSize > list.length ? pages * pageSize : list.length),
+          pages * pageSize > scoutsData.length
+            ? pages * pageSize
+            : scoutsData.length,
         );
       }
-    } catch (err: any) {
-      console.error("Error fetching scouts:", err);
-      if (err.response?.status === 401) {
+    } catch (error: any) {
+      console.error("Error fetching scouts:", error);
+
+      if (error.response?.status === 401) {
         setError("Unauthorized. Please login again.");
-      } else if (err.response?.status === 400) {
+      } else if (error.response?.status === 400) {
         setError("Invalid request parameters.");
-      } else if (err.response?.status === 500) {
+      } else if (error.response?.status === 500) {
         setError("Server error. Please try again later.");
       } else {
-        setError(err.response?.data?.message || "Failed to fetch scouts");
+        setError("Failed to fetch scouts. Please try again.");
       }
     } finally {
-      setIsSearching(false);
       setLoading(false);
     }
   };
@@ -214,7 +241,7 @@ const Scout: React.FC = () => {
 
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
-      fetchScouts(1, debouncedSearchTerm);
+      searchScouts(debouncedSearchTerm, 1);
       setCurrentPage(1);
     } else {
       fetchScouts(currentPage);
@@ -247,7 +274,7 @@ const Scout: React.FC = () => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       if (debouncedSearchTerm.trim()) {
-        fetchScouts(newPage, debouncedSearchTerm);
+        searchScouts(debouncedSearchTerm, newPage);
       }
     }
   };
@@ -287,7 +314,7 @@ const Scout: React.FC = () => {
 
   const handleActionComplete = () => {
     if (debouncedSearchTerm.trim()) {
-      fetchScouts(currentPage, debouncedSearchTerm);
+      searchScouts(debouncedSearchTerm, currentPage);
     } else {
       fetchScouts(currentPage);
     }
