@@ -94,10 +94,22 @@ const categories = [
     path: "/admin/team",
   },
   {
+    label: "Scouts",
+    color: "bg-violet-500 hover:bg-violet-600",
+    text: "text-white",
+    path: "/admin/scout",
+  },
+  {
     label: "Fans & followers",
     color: "bg-fuchsia-500 hover:bg-fuchsia-600",
     text: "text-white",
     path: "/admin/fan",
+  },
+  {
+    label: "Moderation",
+    color: "bg-violet-500 hover:bg-violet-600",
+    text: "text-white",
+    path: "/admin/moderation",
   },
 ];
 

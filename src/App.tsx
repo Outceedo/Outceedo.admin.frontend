@@ -38,6 +38,9 @@ import PlayersAssociations from "./Adminpages/Teams/PlayersAssociations";
 import ReviewsComments from "./Adminpages/Teams/Reviews&Comments";
 import Activities from "./Adminpages/Teams/Activities";
 
+import Scout from "./Adminpages/scout/scout";
+import EditScout from "./Adminpages/scout/EditScout";
+
 import Fans from "./Adminpages/Fans/Fans";
 import EditFan from "./Adminpages/Fans/EditFan";
 import Reviews from "./Adminpages/Fans/FansReviews";
@@ -231,6 +234,10 @@ const AppRoutes = () => {
         <Route path="team/activities" element={<Activities />} />
         <Route path="team/edit/:id" element={<EditTeam />} />
 
+        {/* Scouts */}
+        <Route path="scout" element={<Scout />} />
+        <Route path="scout/edit/:id" element={<EditScout />} />
+
         {/* Fans Routes */}
         <Route path="fan" element={<Fans />} />
         <Route path="fan/reviews" element={<Reviews />} />
@@ -239,6 +246,7 @@ const AppRoutes = () => {
         <Route path="fan/edit/:id" element={<EditFan />} />
 
         {/* Moderation Routes */}
+        <Route path="moderation" element={<>Hello</>} />
         <Route path="moderation/banned" element={<BannedUsers />} />
         <Route path="moderation/suspended" element={<SuspendedUsers />} />
         <Route path="moderation/deleted" element={<DeletedUsers />} />
