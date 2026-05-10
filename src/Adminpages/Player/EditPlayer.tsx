@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import avatar from "@/assets/images/avatar.png";
 import UserActions from "@/components/admin/UserActions";
+import PremiumGrant from "@/components/admin/PremiumGrant";
 
 interface Document {
   id: string;
@@ -471,6 +472,9 @@ const EditPlayer: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Premium Subscription Grant */}
+      {id && <PremiumGrant userId={id} />}
 
       {error && (
         <Alert className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">

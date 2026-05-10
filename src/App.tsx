@@ -55,6 +55,7 @@ import ReferredExpert from "./Adminpages/Expert/referred";
 import BannedUsers from "./Adminpages/Moderation/BannedUsers";
 import SuspendedUsers from "./Adminpages/Moderation/SuspendedUsers";
 import DeletedUsers from "./Adminpages/Moderation/DeletedUsers";
+import PremiumUsers from "./Adminpages/Moderation/PremiumUsers";
 import TeamBooking from "./Adminpages/Teams/Booking";
 
 // ---------------------- Auth Context ----------------------
@@ -250,6 +251,7 @@ const AppRoutes = () => {
         <Route path="moderation/banned" element={<BannedUsers />} />
         <Route path="moderation/suspended" element={<SuspendedUsers />} />
         <Route path="moderation/deleted" element={<DeletedUsers />} />
+        <Route path="moderation/premium" element={<PremiumUsers />} />
       </Route>
 
       {/* Catch-all redirect */}

@@ -262,6 +262,12 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
     },
     {
       id: 4,
+      name: "Premium Users",
+      icon: "fas fa-crown",
+      path: "/admin/moderation/premium",
+    },
+    {
+      id: 5,
       name: "Dashboard",
       icon: "fas fa-chart-line",
       path: "/admin/dashboard",
