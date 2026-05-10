@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Crown, Loader2, Calendar } from "lucide-react";
+import { Crown, Loader2, Calendar, Ban } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -61,6 +61,7 @@ const PremiumGrant: React.FC<Props> = ({ userId }) => {
   const [endDate, setEndDate] = useState(oneMonthLater);
 
   const [submitting, setSubmitting] = useState(false);
+  const [revoking, setRevoking] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -152,6 +153,42 @@ const PremiumGrant: React.FC<Props> = ({ userId }) => {
     current?.status === "ACTIVE" &&
     new Date(current.endDate).getTime() > Date.now();
 
+  const isManual = current?.stripeId.startsWith("manual_") ?? false;
+
+  const onRevoke = async () => {
+    if (!current) return;
+    if (!isManual) {
+      setError(
+        "Stripe-managed subscriptions can't be revoked here — use the Stripe dashboard.",
+      );
+      return;
+    }
+    if (
+      !confirm(
+        "Revoke this user's premium subscription and revert them to the free tier immediately?",
+      )
+    )
+      return;
+
+    setError("");
+    setSuccess("");
+    setRevoking(true);
+    try {
+      const res = await axios.post(
+        `${apiBase}/subscription/revoke/${userId}`,
+        {},
+        { headers: headers() },
+      );
+      setSuccess(res.data?.message || "Subscription revoked");
+      await fetchCurrent();
+    } catch (err: any) {
+      console.error("Revoke failed", err);
+      setError(err.response?.data?.message || "Failed to revoke subscription");
+    } finally {
+      setRevoking(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6 mb-6">
       <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white flex items-center gap-2">
@@ -190,7 +227,7 @@ const PremiumGrant: React.FC<Props> = ({ userId }) => {
               {new Date(current.endDate).toLocaleDateString()}
             </div>
             <div className="text-xs text-gray-500">
-              {current.stripeId.startsWith("manual_")
+              {isManual
                 ? "Manually granted by admin"
                 : "Stripe-managed subscription"}
             </div>
@@ -268,7 +305,7 @@ const PremiumGrant: React.FC<Props> = ({ userId }) => {
             className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white"
           />
         </div>
-        <div className="md:col-span-4 flex justify-end">
+        <div className="md:col-span-4 flex justify-end gap-2">
           <Button
             type="submit"
             disabled={submitting}
@@ -286,6 +323,31 @@ const PremiumGrant: React.FC<Props> = ({ userId }) => {
               </>
             )}
           </Button>
+          {isActive && (
+            <Button
+              type="button"
+              onClick={onRevoke}
+              disabled={revoking || !isManual}
+              title={
+                isManual
+                  ? "Revoke premium and revert to free tier"
+                  : "Stripe-managed — revoke from the Stripe dashboard"
+              }
+              className="bg-black hover:bg-gray-800 text-white disabled:opacity-50"
+            >
+              {revoking ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Reverting...
+                </>
+              ) : (
+                <>
+                  <Ban className="w-4 h-4 mr-2" />
+                  Revert to Free
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </form>
 
