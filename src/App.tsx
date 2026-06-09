@@ -57,6 +57,7 @@ import SuspendedUsers from "./Adminpages/Moderation/SuspendedUsers";
 import DeletedUsers from "./Adminpages/Moderation/DeletedUsers";
 import PremiumUsers from "./Adminpages/Moderation/PremiumUsers";
 import TeamBooking from "./Adminpages/Teams/Booking";
+import Matches from "./Adminpages/Matches/Matches";
 
 // ---------------------- Auth Context ----------------------
 interface AuthContextType {
@@ -245,6 +246,9 @@ const AppRoutes = () => {
         <Route path="fan/interests" element={<Interests />} />
         <Route path="fan/comments" element={<Comments />} />
         <Route path="fan/edit/:id" element={<EditFan />} />
+
+        {/* WC2026 Matches */}
+        <Route path="matches" element={<Matches />} />
 
         {/* Moderation Routes */}
         <Route path="moderation" element={<>Hello</>} />

@@ -241,6 +241,20 @@ export const sidebarMenus: Record<string, MenuItem[]> = {
       path: "/admin/dashboard",
     },
   ],
+  matches: [
+    {
+      id: 1,
+      name: "WC2026 Matches",
+      icon: "fas fa-futbol",
+      path: "/admin/matches",
+    },
+    {
+      id: 2,
+      name: "Dashboard",
+      icon: "fas fa-chart-line",
+      path: "/admin/dashboard",
+    },
+  ],
   moderation: [
     {
       id: 1,

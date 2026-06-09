@@ -111,6 +111,12 @@ const categories = [
     text: "text-white",
     path: "/admin/moderation",
   },
+  {
+    label: "Matches",
+    color: "bg-blue-500 hover:bg-blue-600",
+    text: "text-white",
+    path: "/admin/matches",
+  },
 ];
 
 const chartData = Array.from({ length: 30 }, (_, i) => ({
