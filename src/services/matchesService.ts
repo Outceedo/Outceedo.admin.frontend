@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // The WC2026 match + prediction APIs live in the "other" service.
-const API_URL = `${import.meta.env.VITE_PORT}/api/v1/other`;
+const API_URL = `${import.meta.env.VITE_USER}/other`;
 
 const getHeaders = () => {
   const token = localStorage.getItem("adminToken");
