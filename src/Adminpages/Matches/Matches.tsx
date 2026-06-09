@@ -55,6 +55,9 @@ export default function Matches() {
     useState<MatchPredictionsSummary | null>(null);
   const [predictionsFor, setPredictionsFor] = useState<number | null>(null);
 
+  // Fixture queued for the settle-confirmation modal (null = modal closed).
+  const [confirmMatch, setConfirmMatch] = useState<Match | null>(null);
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -139,15 +142,14 @@ export default function Matches() {
     }
   };
 
-  const handleSettle = async (m: Match) => {
-    const d = drafts[m.matchId];
-    const ok = window.confirm(
-      `Settle ${d.home} ${d.homeScore}–${d.awayScore} ${d.away}?\n\n` +
-        `This finalises the result and awards 1 coin to every correct prediction. ` +
-        `It can't be undone.`,
-    );
-    if (!ok) return;
+  // Opening the confirmation modal — the actual settle runs from confirmSettle.
+  const handleSettle = (m: Match) => setConfirmMatch(m);
 
+  const confirmSettle = async () => {
+    const m = confirmMatch;
+    if (!m) return;
+    const d = drafts[m.matchId];
+    setConfirmMatch(null);
     setBusyId(m.matchId);
     setError(null);
     try {
@@ -427,6 +429,53 @@ export default function Matches() {
           })}
         </div>
       )}
+
+      {/* Settle confirmation modal */}
+      {confirmMatch &&
+        (() => {
+          const d = drafts[confirmMatch.matchId];
+          if (!d) return null;
+          return (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+              onClick={() => setConfirmMatch(null)}
+            >
+              <div
+                className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white">
+                  Settle this match?
+                </h2>
+                <div className="mt-4 flex items-center justify-center gap-3 rounded-lg bg-gray-50 dark:bg-slate-800 py-4 text-gray-800 dark:text-white">
+                  <span className="font-semibold">{d.home}</span>
+                  <span className="text-2xl font-bold tabular-nums">
+                    {d.homeScore} – {d.awayScore}
+                  </span>
+                  <span className="font-semibold">{d.away}</span>
+                </div>
+                <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                  This finalises the result and awards 1 coin to every correct
+                  prediction. It can&apos;t be undone.
+                </p>
+                <div className="mt-6 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setConfirmMatch(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmSettle}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Confirm &amp; reward
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }
