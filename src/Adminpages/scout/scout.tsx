@@ -69,7 +69,8 @@ interface ScoutData {
   weight: number | null;
   photo: string | null;
   profession: string | null;
-  subProfession: string | null;
+  position: string | null;
+  foot: string | null;
   sport: string | null;
   language: string[] | null;
   skills: any[];
@@ -488,9 +489,9 @@ const Scout: React.FC = () => {
                           {scout.sport}
                         </span>
                       )}
-                      {scout.subProfession && (
+                      {scout.position && (
                         <span className="text-xs text-gray-500">
-                          {scout.subProfession}
+                          {scout.position}
                         </span>
                       )}
                     </div>
@@ -750,7 +751,20 @@ const Scout: React.FC = () => {
                         Position:
                       </span>
                       <span className="dark:text-white">
-                        {selectedScout.subProfession || "-"}
+                        {selectedScout.position || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Foot:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedScout.foot
+                          ? selectedScout.foot
+                              .split("_")
+                              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                              .join(" ")
+                          : "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

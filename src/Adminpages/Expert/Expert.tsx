@@ -68,7 +68,8 @@ interface Expert {
   address?: string;
   bio?: string;
   profession?: string;
-  subProfession?: string;
+  position?: string;
+  foot?: string;
   certificationLevel?: string;
   company?: string;
   companyLink?: string;
@@ -683,10 +684,23 @@ const Expert: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500 dark:text-gray-400">
-                        Specialization:
+                        Position:
                       </span>
                       <span className="dark:text-white">
-                        {selectedExpert.subProfession || "-"}
+                        {selectedExpert.position || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Foot:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedExpert.foot
+                          ? selectedExpert.foot
+                              .split("_")
+                              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                              .join(" ")
+                          : "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

@@ -71,7 +71,8 @@ const EditPlayer: React.FC = () => {
     height: "",
     weight: "",
     profession: "",
-    subProfession: "",
+    position: "",
+    foot: "",
     sport: "",
     birthYear: "",
     skinColor: "",
@@ -133,7 +134,8 @@ const EditPlayer: React.FC = () => {
           height: data.height?.toString() || "",
           weight: data.weight?.toString() || "",
           profession: data.profession || "",
-          subProfession: data.subProfession || "",
+          position: data.position || "",
+          foot: data.foot || "",
           sport: data.sport || "",
           birthYear: data.birthYear?.toString() || "",
           skinColor: data.skinColor || "",
@@ -367,7 +369,8 @@ const EditPlayer: React.FC = () => {
         height: formData.height ? parseFloat(formData.height) : null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
         profession: formData.profession || null,
-        subProfession: formData.subProfession || null,
+        position: formData.position || null,
+        foot: formData.foot || null,
         sport: formData.sport || null,
         birthYear: formData.birthYear ? parseInt(formData.birthYear) : null,
         skinColor: formData.skinColor || null,
@@ -783,14 +786,53 @@ const EditPlayer: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Position/Sub-Profession
+              Position
             </label>
-            <Input
-              name="subProfession"
-              value={formData.subProfession}
+            <select
+              name="position"
+              value={formData.position}
               onChange={handleChange}
-              placeholder="Position"
-            />
+              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select Position</option>
+              <option value="Goalkeeper">Goalkeeper</option>
+              <option value="Centre-back">Centre-back</option>
+              <option value="Left-back">Left-back</option>
+              <option value="Right-back">Right-back</option>
+              <option value="Wing-back">Wing-back</option>
+              <option value="Sweeper">Sweeper</option>
+              <option value="Defensive midfielder">Defensive midfielder</option>
+              <option value="Central midfielder">Central midfielder</option>
+              <option value="Attacking midfielder">Attacking midfielder</option>
+              <option value="Left midfielder">Left midfielder</option>
+              <option value="Right midfielder">Right midfielder</option>
+              <option value="Box-to-box midfielder">Box-to-box midfielder</option>
+              <option value="Deep-lying playmaker">Deep-lying playmaker</option>
+              <option value="Mezzala">Mezzala</option>
+              <option value="Striker">Striker</option>
+              <option value="Centre forward">Centre forward</option>
+              <option value="Left winger">Left winger</option>
+              <option value="Right winger">Right winger</option>
+              <option value="Inside forward">Inside forward</option>
+              <option value="False 9">False 9</option>
+              <option value="Second striker">Second striker</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Foot
+            </label>
+            <select
+              name="foot"
+              value={formData.foot}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select Foot</option>
+              <option value="right_foot">Right Foot</option>
+              <option value="left_foot">Left Foot</option>
+              <option value="both_foot">Both Foot</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

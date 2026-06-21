@@ -70,7 +70,8 @@ interface PlayerData {
   weight: number | null;
   photo: string | null;
   profession: string | null;
-  subProfession: string | null;
+  position: string | null;
+  foot: string | null;
   sport: string | null;
   language: string[] | null;
   skills: any[];
@@ -504,9 +505,9 @@ const Player: React.FC = () => {
                           {player.sport}
                         </span>
                       )}
-                      {player.subProfession && (
+                      {player.position && (
                         <span className="text-xs text-gray-500">
-                          {player.subProfession}
+                          {player.position}
                         </span>
                       )}
                     </div>
@@ -776,7 +777,20 @@ const Player: React.FC = () => {
                         Position:
                       </span>
                       <span className="dark:text-white">
-                        {selectedPlayer.subProfession || "-"}
+                        {selectedPlayer.position || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Foot:
+                      </span>
+                      <span className="dark:text-white">
+                        {selectedPlayer.foot
+                          ? selectedPlayer.foot
+                              .split("_")
+                              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                              .join(" ")
+                          : "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
