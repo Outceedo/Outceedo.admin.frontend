@@ -21,6 +21,7 @@ interface SponsorData {
   company: string | null;
   companyLink: string | null;
   country: string | null;
+  nationality: string | null;
   photo: string | null;
   profession: string | null;
   subProfession: string | null;
@@ -66,6 +67,7 @@ const EditSponsor: React.FC = () => {
     company: "",
     companyLink: "",
     country: "",
+    nationality: "",
     profession: "",
     subProfession: "",
     sport: "",
@@ -112,6 +114,7 @@ const EditSponsor: React.FC = () => {
           company: data.company || "",
           companyLink: data.companyLink || "",
           country: data.country || "",
+          nationality: data.nationality || "",
           profession: data.profession || "",
           subProfession: data.subProfession || "",
           sport: data.sport || "",
@@ -220,6 +223,7 @@ const EditSponsor: React.FC = () => {
         company: formData.company || null,
         companyLink: formData.companyLink || null,
         country: formData.country || null,
+        nationality: formData.nationality || null,
         profession: formData.profession || null,
         subProfession: formData.subProfession || null,
         sport: formData.sport || null,
@@ -530,6 +534,17 @@ const EditSponsor: React.FC = () => {
               value={formData.country}
               onChange={handleChange}
               placeholder="Country"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nationality
+            </label>
+            <Input
+              name="nationality"
+              value={formData.nationality}
+              onChange={handleChange}
+              placeholder="Nationality"
             />
           </div>
         </div>

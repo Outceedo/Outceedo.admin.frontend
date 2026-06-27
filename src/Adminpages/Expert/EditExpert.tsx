@@ -110,6 +110,9 @@ const EditExpert: React.FC = () => {
     responseTime: "",
     travelLimit: "",
     certificationLevel: "",
+    specialization: "",
+    nationality: "",
+    experience: "",
     teamType: "",
     teamCategory: "",
     address: "",
@@ -173,6 +176,9 @@ const EditExpert: React.FC = () => {
           responseTime: data.responseTime || "",
           travelLimit: data.travelLimit || "",
           certificationLevel: data.certificationLevel || "",
+          specialization: data.specialization || "",
+          nationality: data.nationality || "",
+          experience: data.experience || "",
           teamType: data.teamType || "",
           teamCategory: data.teamCategory || "",
           address: data.address || "",
@@ -511,6 +517,9 @@ const EditExpert: React.FC = () => {
         responseTime: formData.responseTime || null,
         travelLimit: formData.travelLimit || null,
         certificationLevel: formData.certificationLevel || null,
+        specialization: formData.specialization || null,
+        nationality: formData.nationality || null,
+        experience: formData.experience || null,
         teamType: formData.teamType || null,
         teamCategory: formData.teamCategory || null,
         address: formData.address || null,
@@ -1016,6 +1025,39 @@ const EditExpert: React.FC = () => {
               value={formData.certificationLevel}
               onChange={handleChange}
               placeholder="e.g., UEFA A, FA Level 3"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Specialization
+            </label>
+            <Input
+              name="specialization"
+              value={formData.specialization}
+              onChange={handleChange}
+              placeholder="Specialization"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nationality
+            </label>
+            <Input
+              name="nationality"
+              value={formData.nationality}
+              onChange={handleChange}
+              placeholder="Nationality"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Experience
+            </label>
+            <Input
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              placeholder="Experience"
             />
           </div>
           <div>

@@ -73,6 +73,10 @@ const EditPlayer: React.FC = () => {
     profession: "",
     position: "",
     foot: "",
+    playerLevel: "",
+    nationality: "",
+    specialization: "",
+    experience: "",
     sport: "",
     birthYear: "",
     skinColor: "",
@@ -136,6 +140,10 @@ const EditPlayer: React.FC = () => {
           profession: data.profession || "",
           position: data.position || "",
           foot: data.foot || "",
+          playerLevel: data.playerLevel || "",
+          nationality: data.nationality || "",
+          specialization: data.specialization || "",
+          experience: data.experience || "",
           sport: data.sport || "",
           birthYear: data.birthYear?.toString() || "",
           skinColor: data.skinColor || "",
@@ -371,6 +379,10 @@ const EditPlayer: React.FC = () => {
         profession: formData.profession || null,
         position: formData.position || null,
         foot: formData.foot || null,
+        playerLevel: formData.playerLevel || null,
+        nationality: formData.nationality || null,
+        specialization: formData.specialization || null,
+        experience: formData.experience || null,
         sport: formData.sport || null,
         birthYear: formData.birthYear ? parseInt(formData.birthYear) : null,
         skinColor: formData.skinColor || null,
@@ -833,6 +845,56 @@ const EditPlayer: React.FC = () => {
               <option value="left_foot">Left Foot</option>
               <option value="both_foot">Both Foot</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Player Level
+            </label>
+            <select
+              name="playerLevel"
+              value={formData.playerLevel}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Select Player Level</option>
+              <option value="grassroots">Grassroots</option>
+              <option value="academy">Academy</option>
+              <option value="semi_pro">Semi-Pro</option>
+              <option value="professional">Professional</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nationality
+            </label>
+            <Input
+              name="nationality"
+              value={formData.nationality}
+              onChange={handleChange}
+              placeholder="Nationality"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Specialization
+            </label>
+            <Input
+              name="specialization"
+              value={formData.specialization}
+              onChange={handleChange}
+              placeholder="Specialization"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Experience
+            </label>
+            <Input
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              placeholder="Experience"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
